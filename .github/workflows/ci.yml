@@ -1,0 +1,111 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# CI matrix for farsee (plan.md §G0 / ADR-0006).
+# Nix flake devShell + Makefile. Branch: master (repo default).
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  # --- Package path README advertises (nix build / nix run) ---------------
+  nix-package:
+    name: "nix package (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+      - name: nix build
+        run: nix build .#default -L
+      - name: nix run --version
+        run: nix run .# -- --version
+      - name: nix run --help
+        run: nix run .# -- --help | head -20
+
+  # --- macOS Clang dev build + tests ----------------------------------------
+  macos-clang:
+    name: "macOS · Clang dev"
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+      - name: Build & test
+        run: nix develop --command bash -c "make clean && make BUILD=dev CC=clang build test"
+
+  # --- Linux Clang dev build + tests ----------------------------------------
+  linux-clang:
+    name: "Linux · Clang dev"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+      - name: Build & test
+        run: nix develop --command bash -c "make clean && make BUILD=dev CC=clang build test"
+
+  # --- Linux GCC dev build + tests ------------------------------------------
+  linux-gcc:
+    name: "Linux · GCC dev"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+      - name: Build & test
+        run: nix develop --command bash -c "make clean && make BUILD=dev CC=gcc build test"
+
+  # --- ASan / UBSan ----------------------------------------------------------
+  sanitizer:
+    name: "ASan / UBSan (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+      - name: Sanitizer build & tests
+        run: nix develop --command bash -c "make clean && make asan-ubsan"
+
+  # --- Coverage --------------------------------------------------------------
+  coverage:
+    name: "Coverage"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+      - name: Coverage build + report
+        # BUILD=coverage must apply to coverage-report as well (default BUILD=dev).
+        run: nix develop --command bash -c "make clean && make BUILD=coverage CC=clang build test coverage-report"
+
+  # --- License / configure / fuzz smoke -------------------------------------
+  audit:
+    name: "License, configure, fuzz-smoke"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+      - name: License audit
+        run: nix develop --command bash -c "make check-license"
+      - name: C11/extensions-off self-test
+        run: nix develop --command bash -c "make check-std-c11"
+      - name: Strict-warnings self-test
+        run: nix develop --command bash -c "make check-warnings"
+      - name: Fuzz smoke
+        run: nix develop --command bash -c "make fuzz-smoke"

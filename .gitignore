@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Result files from `nix build` / `nix develop`.
+result
+result-*
+
+# Build artifacts. The project uses an out-of-tree build/ directory driven
+# by the Makefile (see ADR-0006); keep it out of git.
+build/
+build-*/
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.exe
+/bin/
+/lib/
+
+# Coverage / sanitizer outputs.
+coverage/
+*.gcno
+*.gcda
+*.gcov
+*.lcov
+asan-logs/
+ubsan-logs/
+fuzz-corpus/
+fuzz-out/
+crash-*
+leak-*
+
+# Editor / OS noise.
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+*.plist
+
+# Agent / ZCode session scratch (never commit).
+.zcode/
