@@ -1,0 +1,6 @@
+farsee rdp: connecting to 127.0.0.1:13390 (user=TestAdmin)
+farsee rdp: X.224 connection request sent
+farsee rdp: X.224 connection confirm received
+farsee rdp: TLS handshake complete
+farsee rdp: NLA authentication passed
+farsee rdp: desktop frames delivered (800x600, n=20) -> settled dump

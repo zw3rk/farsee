@@ -1,0 +1,18 @@
+warning: Git tree '/Users/angerman/Projects/zw3rk/vnc' is dirty
+farsee devShell ready. Run 'make help' to see targets.
+[11:38:30:585] [13116:6d1b7000] [WARN][com.freerdp.codec.nsc.neon] - [nsc_init_neon_int]: TODO: Implement neon optimized version of this function
+[11:38:30:595] [13116:6d1b7000] [WARN][com.freerdp.core.rdp] - [log_build_warn][0x13a80c000]: *************************************************
+[11:38:30:595] [13116:6d1b7000] [WARN][com.freerdp.core.rdp] - [log_build_warn][0x13a80c000]: This build is using [runtime-check] build options:
+[11:38:30:595] [13116:6d1b7000] [WARN][com.freerdp.core.rdp] - [log_build_warn][0x13a80c000]: * 'WITH_VERBOSE_WINPR_ASSERT=ON'
+[11:38:30:595] [13116:6d1b7000] [WARN][com.freerdp.core.rdp] - [log_build_warn][0x13a80c000]: 
+[11:38:30:595] [13116:6d1b7000] [WARN][com.freerdp.core.rdp] - [log_build_warn][0x13a80c000]: [runtime-check] build options might slow down the application
+[11:38:30:595] [13116:6d1b7000] [WARN][com.freerdp.core.rdp] - [log_build_warn][0x13a80c000]: *************************************************
+[11:38:30:615] [13116:6d1b7000] [ERROR][com.winpr.sspi.Kerberos] - [kerberos_AcquireCredentialsHandleA]: krb5_parse_name (Configuration file does not specify default realm [-1765328160])
+[11:38:30:616] [13116:6d1b7000] [ERROR][com.winpr.sspi.Kerberos] - [kerberos_AcquireCredentialsHandleA]: krb5_parse_name (Configuration file does not specify default realm [-1765328160])
+[11:38:30:632] [13116:6d1b7000] [WARN][com.freerdp.core.connection] - [rdp_client_connect_auto_detect]: expected messageChannelId=1008, got 1003
+[11:38:30:632] [13116:6d1b7000] [WARN][com.freerdp.core.license] - [license_read_binary_blob_data]: license binary blob::type BB_ERROR_BLOB, length=0, skipping.
+[11:38:30:727] [13116:6d1b7000] [WARN][com.freerdp.core.connection] - [rdp_client_connect_auto_detect]: expected messageChannelId=1008, got 1003
+[11:38:30:784] [13116:6d1b7000] [WARN][com.winpr.thread] - [SetThreadPriority]: pthread_setschedprio(0) not implemented, requires POSIX 2008 or later
+[11:38:30:894] [13116:6e5f3000] [WARN][com.freerdp.codec.nsc.neon] - [nsc_init_neon_int]: TODO: Implement neon optimized version of this function
+[11:38:30:895] [13116:6e5f3000] [WARN][com.freerdp.codec.nsc.neon] - [nsc_init_neon_int]: TODO: Implement neon optimized version of this function
+[11:39:04:977] [13116:6d1b7000] [ERROR][com.freerdp.core] - [rdp_set_error_info]: ERRINFO_LOGOFF_BY_USER [0x0001000C]

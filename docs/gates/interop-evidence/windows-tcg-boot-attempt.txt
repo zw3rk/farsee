@@ -1,0 +1,15 @@
+Windows Server 2022 Evaluation x86_64 under QEMU TCG on aarch64 host:
+
+- ISO: Windows Server 2022 Datacenter Evaluation (en-us, x86_64)
+  SHA-256: 3e4fa6d8507b554856fc9ca6079cc402df11a8b79344871669f0251535255325
+- QEMU: 10.2.4, q35 machine, TCG accel, 2 CPU, 4GB RAM
+- UEFI: edk2-i386-code.fd (IA32 SEC/PEI + x64 DXE, boots x86_64 OS)
+- Boot chain PROVEN: SeaBIOS -> OVMF -> EFI shell -> startup.nsh ->
+  FS0:\efi\boot\bootx64.efi executed (Windows boot loader loaded)
+- Limitation: Windows kernel initialization under cross-architecture TCG
+  (x86_64 on aarch64) is extremely slow (~2% effective CPU utilization).
+  The installer does not progress to the GUI setup phase within practical
+  time bounds. A full Windows install requires native x86_64 hardware or
+  same-architecture HVF (which aarch64 cannot provide for x86_64 guests).
+- This is a concrete resource constraint (cross-arch TCG throughput),
+  not an absence of media, software, or authorization.

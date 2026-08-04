@@ -1,0 +1,5 @@
+[09:04:28:279] [14933:6d437001] [WARN][com.freerdp.codec.nsc.neon] - [nsc_init_neon_int]: TODO: Implement neon optimized version of this function
+[09:04:28:293] [14933:6d437001] [ERROR][com.freerdp.core.license] - [license_read_binary_blob_data]: license binary blob::type expected BB_UNKNOWN, got BB_ERROR_BLOB
+[09:04:28:293] [14933:6d437001] [ERROR][com.freerdp.core] - [freerdp_connect_begin]: Authentication only, exit status 1
+[09:04:28:294] [14933:f1659d81] [ERROR][com.freerdp.core] - [freerdp_abort_connect_context]: ERRCONNECT_CONNECT_CANCELLED [0x0002000B]
+[09:04:28:278] [14933:6d437001] [INFO][com.freerdp.client.x11] - [xf_pre_connect]: Authentication only. Don't connect to X.

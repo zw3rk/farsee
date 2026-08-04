@@ -1,0 +1,39 @@
+farsee: binary 0.1.0-dev git=9e5122c97484 built=2026-07-29T07:54:44Z
+farsee:   path=/Users/angerman/Projects/zw3rk/vnc/build/dev/bin/farsee
+farsee:   inode=55455211 mtime=2026-07-29T14:54:44  (restart after rebuild if these change on disk)
+farsee: apple session phase: apple-auth-selected (type 33 RSA/SRP)
+farsee: apple session phase: live-type33-path
+farsee: apple session phase: post-auth-aead-kitty-may-be-incomplete
+farsee: apple session phase: high-performance-adaptive-not-enabled
+farsee: dump presenter path=/tmp/e7e8/frame_e7b.rgba
+farsee: type-33 early pointer path 0,0→960,540→1920,1080 + click with first FBUR (3840x2160 — first real paint may take a few seconds over the LAN)
+farsee: Apple type-33 authenticated (wrap_key derived)
+farsee: type-33 wake #1 pointer 1920,1080 + key + full FBUR (still waiting for non-black desktop)
+farsee rfb debug: first-FBU-header len=2736 dump=32: 00 00 00 01 00 00 00 00 0f 00 08 70 00 00 00 10 00 01 a8 12 78 01 ec d0 81 00 00 00 00 80 a0 fd ...
+farsee: type-33 wake #2 pointer 1920,1080 + key + full FBUR (still waiting for non-black desktop)
+farsee: type-33 wake #3 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: frame #1 still black (type-33 blank first paint is normal; waiting for full desktop…)
+farsee: present frame #1 dark
+farsee: frame #2 still black (type-33 blank first paint is normal; waiting for full desktop…)
+farsee: present frame #2 dark
+farsee: type-33 wake #4 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: frame #3 still black (type-33 blank first paint is normal; waiting for full desktop…)
+farsee: present frame #3 dark
+farsee: present frame #4 dark
+farsee: present frame #5 dark
+farsee: type-33 wake #5 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: present frame #6 dark
+farsee.cpu_probe name=protocol wall_ms=2002 core=0.093 proc_core=-1.000 proc_sys=-1.000 loops/s=131 poll/s=131 pto/s=47 prdy/s=83 rx_B/s=325413 fbu_hdr/s=3.0 fbu_done/s=3.0 pub/s=0.0 pres_ok/s=0.0 pres_fail/s=0.0 pres_skip/s=0.0 minflt/s=0
+farsee: type-33 wake #6 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: type-33 wake #7 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: type-33 wake #8 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: type-33 wake #9 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee.cpu_probe name=protocol wall_ms=2016 core=0.052 proc_core=0.052 proc_sys=0.011 loops/s=122 poll/s=122 pto/s=55 prdy/s=66 rx_B/s=215435 fbu_hdr/s=2.0 fbu_done/s=2.0 pub/s=0.0 pres_ok/s=0.0 pres_fail/s=0.0 pres_skip/s=0.0 minflt/s=6
+farsee: type-33 wake #10 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: type-33 wake #11 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee.cpu_probe name=protocol wall_ms=2005 core=0.024 proc_core=0.024 proc_sys=0.005 loops/s=91 poll/s=91 pto/s=57 prdy/s=34 rx_B/s=108308 fbu_hdr/s=1.0 fbu_done/s=1.0 pub/s=0.0 pres_ok/s=0.0 pres_fail/s=0.0 pres_skip/s=0.0 minflt/s=759
+farsee: type-33 wake #12 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: type-33 wake #13 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee.cpu_probe name=protocol wall_ms=2002 core=0.045 proc_core=0.045 proc_sys=0.011 loops/s=84 poll/s=84 pto/s=56 prdy/s=27 rx_B/s=108471 fbu_hdr/s=1.0 fbu_done/s=1.0 pub/s=0.0 pres_ok/s=0.0 pres_fail/s=0.0 pres_skip/s=0.0 minflt/s=759
+farsee: type-33 wake #14 pointer 1920,1080 + full FBUR (still waiting for non-black desktop)
+farsee: disconnected (signal / leader quit)

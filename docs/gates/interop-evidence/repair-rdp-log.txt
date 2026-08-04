@@ -1,0 +1,54 @@
+=== REPAIR-RDP START === 
+Windows: C: 
+SYSTEM hive loaded 
+ControlSet: ControlSet001 
+=== BEFORE === 
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\ControlSet001\Control\Terminal Server
+    fDenyTSConnections    REG_DWORD    0x0
+
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\ControlSet001\Control\Terminal Server\WinStations\RDP-Tcp
+    UserAuthentication    REG_DWORD    0x1
+
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\ControlSet001\Control\Terminal Server\WinStations\RDP-Tcp
+    SecurityLayer    REG_DWORD    0x2
+
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\ControlSet001\Control\Terminal Server\WinStations\RDP-Tcp
+    fEnableWinStation    REG_DWORD    0x1
+
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\ControlSet001\Control\Terminal Server\WinStations\RDP-Tcp
+    PortNumber    REG_DWORD    0xd3d
+
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\ControlSet001\Services\TermService
+    Start    REG_DWORD    0x3
+
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\ControlSet001\Control\Terminal Server
+    fDenyTSConnections    REG_DWORD    0x0
+
+End of search: 1 match(es) found.
+=== NetKVM === 
+netkvm.inf_arm64_8edf5dc1a1f603ce
+netkvm.inf_arm64_8edf5dc1a1f603ce.ini
+'findstr' is not recognized as an internal or external command,
+operable program or batch file.
+TermService Start before: 0x3 
+=== Setup State === 
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\Setup
+    SystemSetupInProgress    REG_DWORD    0x0
+
+
+HKEY_LOCAL_MACHINE\FARSEE_SYS\Setup
+    OOBEInProgress    REG_DWORD    0x0
+
+=== Panther === 
+'findstr' is not recognized as an internal or external command,
+operable program or batch file.
+Hive unloaded 
+=== REPAIR-RDP DONE === 
