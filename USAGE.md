@@ -1,6 +1,7 @@
 # farsee — usage
 
-Clean-room C11 RFB/VNC (and RDP) client for Kitty graphics terminals.
+C11 RFB/VNC (and RDP) client for Kitty graphics (KGP) terminals.
+See `README.md` for a short list of terminals that implement KGP.
 
 ## Quick start
 
