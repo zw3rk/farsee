@@ -18,7 +18,10 @@
 
 #include <freerdp/codec/color.h>
 #include <freerdp/freerdp.h>
+#include <freerdp/channels/rdpgfx.h>
+#include <freerdp/client/rdpgfx.h>
 #include <freerdp/gdi/gdi.h>
+#include <freerdp/gdi/gfx.h>
 #include <freerdp/settings.h>
 #include <freerdp/update.h>
 
@@ -246,11 +249,56 @@ static int rdp_cb_verify_x509(freerdp *instance,
     return rdp_verify_x509_freerdp_return(cbctx->trust);
 }
 
-// --- Authentication -> credential bridge (§15.6) ---------------------------
-static BOOL rdp_cb_authenticate(freerdp *instance,
-                                char **username, char **password,
-                                char **domain)
+// --- Graphics pipeline (EGFX) bridge ---------------------------------------
+//
+// gnome-remote-desktop only speaks the EGFX/RFX graphics pipeline: it has no
+// legacy bitmap-update fallback and drops the connection outright with
+// "Client did not advertise support for the Graphics Pipeline" if the client
+// does not negotiate it. Wiring the rdpgfx channel into the software GDI makes
+// FreeRDP decode surface commands straight into gdi->primary_buffer, which is
+// the same buffer the legacy path filled, so the display bridge is unchanged.
+static void rdp_cb_on_channel_connected(void *context,
+                                        const ChannelConnectedEventArgs *e)
 {
+    rdpContext *rdp_ctx = (rdpContext *)context;
+    if (rdp_ctx == NULL || e == NULL || e->name == NULL ||
+        e->pInterface == NULL) {
+        return;
+    }
+    if (strcmp(e->name, RDPGFX_DVC_CHANNEL_NAME) != 0) {
+        return;
+    }
+    (void)gdi_graphics_pipeline_init(rdp_ctx->gdi,
+                                     (RdpgfxClientContext *)e->pInterface);
+}
+
+static void rdp_cb_on_channel_disconnected(
+    void *context, const ChannelDisconnectedEventArgs *e)
+{
+    rdpContext *rdp_ctx = (rdpContext *)context;
+    if (rdp_ctx == NULL || e == NULL || e->name == NULL ||
+        e->pInterface == NULL) {
+        return;
+    }
+    if (strcmp(e->name, RDPGFX_DVC_CHANNEL_NAME) != 0) {
+        return;
+    }
+    gdi_graphics_pipeline_uninit(rdp_ctx->gdi,
+                                 (RdpgfxClientContext *)e->pInterface);
+}
+
+// --- Authentication -> credential bridge (§15.6) ---------------------------
+static BOOL rdp_cb_authenticate_ex(freerdp *instance,
+                                   char **username, char **password,
+                                   char **domain, rdp_auth_reason reason)
+{
+    // Only supply credentials for the connection-level auth prompts. Gateway
+    // and smartcard-PIN reasons ask for a different secret entirely, and the
+    // pre-3.25 Authenticate callback could not tell them apart.
+    if (reason != AUTH_NLA && reason != AUTH_TLS && reason != AUTH_RDP &&
+        reason != AUTH_RDSTLS) {
+        return FALSE;
+    }
     rdp_farsee_context *fcc = rdp_fcc_from_instance(instance);
     if (fcc == NULL || fcc->cbctx == NULL || fcc->cbctx->credentials == NULL ||
         fcc->cbctx->policy == NULL) {
@@ -782,13 +830,15 @@ static bool rdp_callbacks_apply_instance(freerdp *inst,
     // display bridge publishes as a BGRA8888 surface view (§15.8).
     freerdp_settings_set_bool(s, FreeRDP_SoftwareGdi, TRUE);
 
-    // Force the legacy bitmap-update path so the server sends BitmapUpdate
-    // PDUs that the GDI decodes directly into primary_buffer. Windows 10/11
-    // otherwise prefers the EGFX/RFX/H264 graphics pipeline, whose decoded
-    // surface is composed separately and does not populate primary_buffer in
-    // time for the snapshot path. Disabling SupportGraphicsPipeline makes the
-    // server fall back to order/bitmap updates the GDI primary ops handle.
-    freerdp_settings_set_bool(s, FreeRDP_SupportGraphicsPipeline, FALSE);
+    // Negotiate the EGFX graphics pipeline. Windows prefers it but falls back
+    // to order/bitmap updates when it is off, which is why the snapshot path
+    // used to disable it -- the legacy path lands directly in primary_buffer.
+    // gnome-remote-desktop has no such fallback: it requires EGFX and closes
+    // the connection with "Client did not advertise support for the Graphics
+    // Pipeline" if it is absent, so turning it off makes GNOME unreachable.
+    // rdp_cb_on_channel_connected bridges the rdpgfx DVC into the software GDI
+    // so decoded surfaces still land in primary_buffer for both servers.
+    freerdp_settings_set_bool(s, FreeRDP_SupportGraphicsPipeline, TRUE);
     // 32-bit color depth for a full BGRA8888 desktop.
     freerdp_settings_set_uint32(s, FreeRDP_ColorDepth, 32);
     // Bitmap cache so repeated bitmaps (icons, glyphs) decode without re-send.
@@ -855,10 +905,29 @@ bool rdp_callbacks_install(rdp_freerdp_ctx *ctx,
     //   §10.6/§15.4 PreConnect (settings), §15.8 PostConnect (gdi+update),
     //   PostDisconnect (gdi_free).
     inst->VerifyX509Certificate = rdp_cb_verify_x509;
-    inst->Authenticate = rdp_cb_authenticate;
+    inst->AuthenticateEx = rdp_cb_authenticate_ex;
     inst->PreConnect = rdp_cb_pre_connect;
     inst->PostConnect = rdp_cb_post_connect;
     inst->PostDisconnect = rdp_cb_post_disconnect;
+
+    // EGFX: subscribe before connect so the rdpgfx DVC is bridged into the
+    // GDI as soon as the server opens it.
+    if (inst->context != NULL && inst->context->pubSub != NULL) {
+        (void)PubSub_UnsubscribeChannelConnected(inst->context->pubSub,
+                                                 rdp_cb_on_channel_connected);
+        (void)PubSub_UnsubscribeChannelDisconnected(
+            inst->context->pubSub, rdp_cb_on_channel_disconnected);
+        if (PubSub_SubscribeChannelConnected(inst->context->pubSub,
+                                             rdp_cb_on_channel_connected) != 0) {
+            return false;
+        }
+        if (PubSub_SubscribeChannelDisconnected(
+                inst->context->pubSub, rdp_cb_on_channel_disconnected) != 0) {
+            (void)PubSub_UnsubscribeChannelConnected(
+                inst->context->pubSub, rdp_cb_on_channel_connected);
+            return false;
+        }
+    }
 
     // R6 cliprdr: register static addin provider + LoadChannels + PubSub
     // so freerdp_connect can attach cliprdr when RedirectClipboard is on.

@@ -16,6 +16,7 @@
 #include <winpr/synch.h>
 
 #include <limits.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/socket.h>
 
@@ -141,6 +142,33 @@ static void apply_inj(rdp_mt_shared *sh, const rdp_inj_cmd *c)
     }
 }
 
+// --- server redirection ----------------------------------------------------
+//
+// GNOME "Remote Login" does not serve the desktop from the daemon you first
+// authenticate against. Once NLA succeeds it sends an RDP server-redirection
+// PDU -- same host, carrying a load-balance cookie, a redirection GUID and
+// PK-encrypted credentials -- pointing at the user session's own endpoint.
+// FreeRDP consumes the PDU, drops the transport and resets the state machine
+// to CONNECTION_STATE_INITIAL, then expects the client to dial again; it does
+// not reconnect by itself. Without this the session ends immediately after the
+// greeter frame and looks exactly like a peer disconnect.
+//
+// Only INITIAL is treated as a redirect: a genuine logoff or takeover leaves
+// the state elsewhere and must still end the session. One attempt only, so a
+// server that keeps redirecting cannot spin us.
+static bool rdp_mt_follow_redirect(freerdp *inst, rdpContext *context,
+                                   bool *retried)
+{
+    if (inst == NULL || context == NULL || retried == NULL || *retried) {
+        return false;
+    }
+    if (freerdp_get_state(context) != CONNECTION_STATE_INITIAL) {
+        return false;
+    }
+    *retried = true;
+    return freerdp_reconnect(inst) ? true : false;
+}
+
 // --- protocol (FreeRDP pump + inject drain) --------------------------------
 
 static void rdp_protocol_fn(void *user, farsee_frame_slot *slot,
@@ -160,9 +188,13 @@ static void rdp_protocol_fn(void *user, farsee_frame_slot *slot,
     rdpContext *context = inst->context;
     HANDLE handles[RDP_MT_MAX_HANDLES];
     const HANDLE abortEvt = freerdp_abort_event(context);
+    bool redirect_retried = false;
 
     while (!farsee_atomic_int_load_nonzero(stop)) {
         if (freerdp_shall_disconnect_context(context)) {
+            if (rdp_mt_follow_redirect(inst, context, &redirect_retried)) {
+                continue;
+            }
             farsee_atomic_int_store(&sh->peer_dead, 1);
             break;
         }
@@ -185,6 +217,9 @@ static void rdp_protocol_fn(void *user, farsee_frame_slot *slot,
         DWORD n = freerdp_get_event_handles(context, handles,
                                             RDP_MT_MAX_HANDLES - 1);
         if (n == 0) {
+            if (rdp_mt_follow_redirect(inst, context, &redirect_retried)) {
+                continue;
+            }
             farsee_atomic_int_store(&sh->peer_dead, 1);
             break;
         }
@@ -199,6 +234,9 @@ static void rdp_protocol_fn(void *user, farsee_frame_slot *slot,
         }
         if (wr != WAIT_TIMEOUT) {
             if (!freerdp_check_event_handles(context)) {
+                if (rdp_mt_follow_redirect(inst, context, &redirect_retried)) {
+                    continue;
+                }
                 farsee_atomic_int_store(&sh->peer_dead, 1);
                 break;
             }
