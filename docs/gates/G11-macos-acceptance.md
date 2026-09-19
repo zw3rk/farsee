@@ -54,6 +54,18 @@ sanitized output also cannot distinguish a private `0x0450` cursor rectangle
 from a standard Cursor rectangle. Type-36 framebuffer delivery and input, plus
 a visible composited `0x0450` cursor, remain open.
 
+## 2026-09-20 post-cleanup candidate pass
+
+A Developer ID-signed post-cleanup candidate forced type 36, shared-desktop
+attachment, and protected records through the official bounded acceptance
+target. It reported `RECORD_LAYER: active` and `RESULT: PASS`. This supersedes
+the failed retry for authentication, protected-record activation, and bounded
+session entry.
+
+The run used the null presenter and view-only mode. It did not record a
+framebuffer, cursor rectangle, or input result. Type-36 framebuffer delivery
+and input, plus visible composited `0x0450` cursor fidelity, remain open.
+
 ## Verification
 
 Machine checks live in the test suite and `make ci`. Gate status is authoritative in

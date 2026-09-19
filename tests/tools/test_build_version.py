@@ -67,6 +67,9 @@ class BuildVersionTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn('VERSION="$VERSION" release-check', workflow)
         self.assertIn('VERSION="$VERSION" release-artifacts', workflow)
+        self.assertIn("Verify advertised Nix package version", workflow)
+        self.assertIn("./result/bin/farsee --version", workflow)
+        self.assertIn('reported_version" = "$VERSION"', workflow)
 
 
 if __name__ == "__main__":

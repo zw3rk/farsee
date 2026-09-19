@@ -44,6 +44,18 @@ jobs:
           nix develop --command make VERSION="$VERSION" check-release-approval
       - name: Build the advertised Nix package
         run: nix build .#default -L
+      - name: Verify advertised Nix package version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          reported_version="$(./result/bin/farsee --version | awk 'NR == 1 { print $2 }')"
+          if [ "$reported_version" = "$VERSION" ]; then
+            :
+          else
+            echo "Nix package version mismatch: expected $VERSION, got $reported_version" >&2
+            exit 1
+          fi
       - name: Run the full release-candidate gate
         env:
           REQUESTED_VERSION: ${{ inputs.version }}

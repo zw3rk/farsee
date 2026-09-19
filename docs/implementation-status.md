@@ -137,9 +137,9 @@ license, and trace audits passed. The 2026-09-01 baseline also ran all 17 fuzz
 targets for 60 seconds each. These older results are regression evidence, not
 final acceptance evidence for the current commit.
 
-### 2026-09-20 candidate evidence
+### 2026-09-20 post-cleanup candidate evidence
 
-The pre-documentation candidate produced the following fresh results:
+The post-history-cleanup source candidate produced the following fresh results:
 
 - The macOS arm64 and Linux arm64 default Nix packages built successfully. The
   Linux build ran on the configured Linux builder.
@@ -149,11 +149,12 @@ The pre-documentation candidate produced the following fresh results:
 - Default and no-RDP complete artifact sets were byte-for-byte reproducible.
   Their release audits passed. The runtime closures contained 13 and four
   libraries respectively.
-- The full macOS gate passed 2,338 registered C tests and 209 Python tool
-  tests before the reachable-history check rejected checklist identifiers in
-  the candidate commit message. The message was amended, and the standalone
-  reachable-history check then passed. A full gate run is still required on
-  the resulting final candidate.
+- The full macOS gate passed 2,338 registered C tests and 211 Python tool
+  tests. Clang, GCC, optimized release, no-RDP development and release,
+  Apple-Clang ASan/UBSan, coverage, fuzz smoke, license, current-content,
+  reachable-history, secret, integration, static-analysis, and header-boundary
+  gates all passed. Coverage was 19,329 of 21,696 lines (89.1%) and 12,216 of
+  15,268 branches (80.0%); every module floor passed.
 - On the Windows 11 ARM lab, signed release and developer builds delivered
   frames at 1280x800, resize delivered frames at 1024x768, an incorrect
   password failed as expected, and fresh and unchanged certificate pins worked.
@@ -161,9 +162,10 @@ The pre-documentation candidate produced the following fresh results:
   channel-on and channel-off sessions were stable, but clipboard content was
   not checked. Controlled certificate replacement, peer disconnect, and visual
   input and fidelity checks remain open.
-- On the authorized macOS endpoint, the exact-candidate type-36 retry exited
-  before protected-record activation. It delivered no framebuffer or cursor
-  data. Current-candidate type-36 framebuffer and input acceptance, and visible
+- On the authorized macOS endpoint, a Developer ID-signed post-cleanup
+  candidate forced type 36 and passed the bounded protected-record gate. The
+  null-presenter, view-only run does not establish framebuffer, cursor, or
+  input acceptance. Type-36 framebuffer and input acceptance, and visible
   `0x0450` cursor composition, remain open.
 
 The signing identity is approved. Extended live interoperability, manual
@@ -184,10 +186,9 @@ the ADR-0013 repository-owner governance decision and any required counsel
 review. See `docs/provenance.md`.
 
 Basic authorized macOS interoperability passed under G26. Type-33 covers a
-rendered framebuffer and basic input. An earlier forced type-36 run covered
-authentication and protected-record activation. The current-candidate retry
-did not activate protected records, and neither run established framebuffer
-or input acceptance. Extended Apple, terminal, and RDP matrices remain partial.
+rendered framebuffer and basic input. The current forced type-36 bounded gate
+covers authentication and protected-record activation, but not framebuffer or
+input acceptance. Extended Apple, terminal, and RDP matrices remain partial.
 G26 completion does not clear the separate provenance, packaging, dependency,
 documentation, or final acceptance gates.
 

@@ -114,7 +114,8 @@ status=$?
 set -e
 
 record_active=0
-if grep -Fq "Apple AES-CBC record layer active" "$LOG"; then
+if grep -Fq "Apple AES-CBC record layer active" "$LOG" ||
+        grep -Fxq "farsee: Apple AES-CBC records active" "$LOG"; then
     record_active=1
 fi
 

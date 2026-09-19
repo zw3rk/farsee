@@ -16,14 +16,20 @@ RUNNER = ROOT / "tools" / "macos_acceptance.sh"
 
 
 class MacosAcceptanceTests(unittest.TestCase):
-    def make_fake(self, temp: Path, *, record_marker: bool = True) -> Path:
+    def make_fake(
+        self, temp: Path, *, record_marker: bool = True,
+        wire_record_marker: bool = False,
+    ) -> Path:
         fake = temp / "farsee-fake"
-        marker = (
-            'echo "farsee: Apple AES-CBC record layer active '
-            '(0x044f rekey; AES-CBC records on wire)." >&2\n'
-            if record_marker
-            else ""
-        )
+        if wire_record_marker:
+            marker = 'echo "farsee: Apple AES-CBC records active" >&2\n'
+        elif record_marker:
+            marker = (
+                'echo "farsee: Apple AES-CBC record layer active '
+                '(0x044f rekey; AES-CBC records on wire)." >&2\n'
+            )
+        else:
+            marker = ""
         fake.write_text(
             textwrap.dedent(
                 f"""\
@@ -119,6 +125,24 @@ class MacosAcceptanceTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("RESULT: FAIL", result.stdout)
             self.assertIn("record layer did not become active", result.stderr)
+
+    def test_wire_record_activation_marker_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            fake = self.make_fake(
+                Path(raw), record_marker=False, wire_record_marker=True
+            )
+            result = self.run_with_password(fake)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("RECORD_LAYER: active", result.stdout)
+
+    def test_make_target_can_select_a_presigned_candidate(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        self.assertIn(
+            "MACOS_ACCEPTANCE_BIN ?= $(BUILD_DIR)/release/bin/farsee",
+            makefile,
+        )
+        recipe = makefile.split("macos-acceptance:", 1)[1].split("\n\n", 1)[0]
+        self.assertIn("FARSEE_BIN='$(MACOS_ACCEPTANCE_BIN)'", recipe)
 
     def test_absent_host_reports_needs_hardware(self) -> None:
         env = os.environ.copy()

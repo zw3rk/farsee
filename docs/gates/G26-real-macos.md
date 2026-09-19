@@ -8,9 +8,9 @@
 The authorized type-33 path covers authentication, session entry, framebuffer
 rendering, and basic input. The forced type-36 path covers direct identity/SRP
 authentication, server-proof verification, session entry, and protected Apple
-AES-CBC record activation. That earlier bounded hardware run used the null
-presenter. The current-candidate retry did not activate protected records.
-Neither run establishes type-36 framebuffer or input acceptance.
+AES-CBC record activation. A current post-cleanup bounded hardware run passed
+that path with the null presenter. It establishes live type-36 authentication
+and record activation, but not framebuffer or input acceptance.
 
 Apple `0x0450` uses the profile-1000 alpha-cursor contract and hotspot
 semantics. The presentation-copy compositor keeps cursor pixels out of the

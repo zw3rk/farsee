@@ -113,6 +113,10 @@ FARSEE_USER=account FARSEE_PASSWORD_FD=3 \
 exec 3<&-
 ```
 
+Set `MACOS_ACCEPTANCE_BIN=/absolute/path/to/farsee` to run the gate against a
+prebuilt, signed candidate. The target still prepares the release build, but
+the acceptance runner executes the selected candidate binary.
+
 The target requests attachment to the active shared desktop by default. Set
 `FARSEE_APPLE_ATTACH=login` to qualify the login-window path. The result omits
 the host, account, password, child log, and descriptor. A pass proves

@@ -7,9 +7,10 @@
 
 G26 has passed its basic authorized hardware scope. Release readiness remains
 blocked by the provenance decision in ADR-0013 and by incomplete live-platform,
-signing, independent-review, and final acceptance gates. The repository-local
-current-content and reachable-history trace checks pass on `master`; they must
-run again on the final candidate and do not clear the remaining gates.
+final-artifact signing, independent-review, and final acceptance gates. The
+Developer ID signing identity is approved. The repository-local current-content
+and reachable-history trace checks pass on `master`; they must run again on the
+final candidate and do not clear the remaining gates.
 
 ## Verification
 
