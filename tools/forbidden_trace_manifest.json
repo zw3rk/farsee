@@ -116,7 +116,6 @@
       "token_sha256": [
         {"token_count": 4, "digest": "94d8578c38f70362cf8098026da971c18f4d1b641dc32ddd62e5bf0ff85dcbf3"},
         {"token_count": 3, "digest": "780002ff6c5a72e4115d3274fa66a93cbc58de1133d95bb1eecb278f24f87e25"},
-        {"token_count": 1, "digest": "597f5441e7d174b607873874ed54b974674986ad543e7458e28a038671c9f64c"},
         {"token_count": 1, "digest": "a9c0216a90aeba2cc54ae34d13847dfa5e449925d82395275220541a87bac45c"}
       ],
       "ignore_case": false

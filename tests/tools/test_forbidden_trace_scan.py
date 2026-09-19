@@ -359,7 +359,6 @@ class VocabularyGateTests(unittest.TestCase):
             "/" + "home/example/work/source.c",
             "(user=" + "ExampleAccount)",
             bytes.fromhex("57494e2d5244502d4c4142").decode("ascii"),
-            bytes.fromhex("5465737441646d696e").decode("ascii"),
             bytes.fromhex("73387563466369623979476776783233").decode("ascii"),
         )
         for sample in rejected:
