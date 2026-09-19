@@ -57,10 +57,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: semver.
   can no longer clobber each other's policy); the reactor polls in chunks
   past the 16-fd cap (more than 16 waitables used to starve every fd
   event); fuzz-smoke fails on an empty target directory.
-- Release acceptance now runs a selected pre-signed macOS candidate and
-  recognizes both product record-activation messages. The release workflow
-  also rejects a Nix package whose embedded version differs from the requested
-  release version.
+- Release acceptance now binds a selected pre-signed macOS candidate to its
+  embedded version and revision, SHA-256 digest, and approved Developer ID
+  certificate before connecting. Candidate paths pass through Make's
+  environment without shell parsing. The runner recognizes both product
+  record-activation messages. The release workflow also rejects a Nix package
+  whose embedded version differs from the requested release version.
 
 ### Added
 - Live status band (scale %, RTT, KiB/s) for RFB/RDP Kitty sessions.

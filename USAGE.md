@@ -115,13 +115,19 @@ exec 3<&-
 
 Set `MACOS_ACCEPTANCE_BIN=/absolute/path/to/farsee` to run the gate against a
 prebuilt, signed candidate. The target still prepares the release build, but
-the acceptance runner executes the selected candidate binary.
+the acceptance runner executes the selected candidate binary. It requires a
+valid signature from the Developer ID certificate approved in
+`release/approval.json`. It also checks the embedded version and revision
+against the version in the Makefile and the current Git revision. These release
+identity checks cannot be disabled by the normal target.
 
 The target requests attachment to the active shared desktop by default. Set
 `FARSEE_APPLE_ATTACH=login` to qualify the login-window path. The result omits
-the host, account, password, child log, and descriptor. A pass proves
-authentication, protected-record activation, and bounded session entry. It
-does not replace the manual fidelity and input matrix.
+the host, account, password, child log, and descriptor. It records the
+candidate version, revision, SHA-256 digest, and verified signing identity. A
+pass proves authentication, protected-record activation, and bounded session
+entry for that candidate. It does not replace the manual fidelity and input
+matrix.
 
 ## Secrets
 

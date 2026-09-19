@@ -614,9 +614,15 @@ release-cli: ## Optimized CLI binary only (no tests) — nix packaging
 
 MACOS_ACCEPTANCE_HOST ?=
 MACOS_ACCEPTANCE_BIN ?= $(BUILD_DIR)/release/bin/farsee
+MACOS_ACCEPTANCE_TEST_ONLY ?= no
+macos-acceptance: export FARSEE_BIN := $(MACOS_ACCEPTANCE_BIN)
+macos-acceptance: export FARSEE_ACCEPTANCE_HOST := $(MACOS_ACCEPTANCE_HOST)
+macos-acceptance: export FARSEE_ACCEPTANCE_TEST_ONLY := $(MACOS_ACCEPTANCE_TEST_ONLY)
 macos-acceptance: release-cli ## Run bounded Apple RFB checks on an authorized Mac
-	@FARSEE_BIN='$(MACOS_ACCEPTANCE_BIN)' \
-	  $(TOOLS_DIR)/macos_acceptance.sh '$(MACOS_ACCEPTANCE_HOST)'
+	@# MACOS_ACCEPTANCE_HOST is exported above without shell interpolation.
+	@FARSEE_BIN="$${FARSEE_BIN}" \
+	  FARSEE_ACCEPTANCE_HOST="$${FARSEE_ACCEPTANCE_HOST}" \
+	  $(TOOLS_DIR)/macos_acceptance.sh
 
 RDP_INTEROP_EVIDENCE_DIR ?= $(BUILD_DIR)/rdp-interop-evidence
 RDP_INTEROP_PHASE ?= baseline

@@ -164,9 +164,11 @@ The post-history-cleanup source candidate produced the following fresh results:
   input and fidelity checks remain open.
 - On the authorized macOS endpoint, a Developer ID-signed post-cleanup
   candidate forced type 36 and passed the bounded protected-record gate. The
-  null-presenter, view-only run does not establish framebuffer, cursor, or
-  input acceptance. Type-36 framebuffer and input acceptance, and visible
-  `0x0450` cursor composition, remain open.
+  earlier runner did not emit a digest, embedded revision, or certificate
+  fingerprint, so this is protocol evidence rather than exact-candidate release
+  evidence. The null-presenter, view-only run does not establish framebuffer,
+  cursor, or input acceptance. Type-36 framebuffer and input acceptance, and
+  visible `0x0450` cursor composition, remain open.
 
 The signing identity is approved. Extended live interoperability, manual
 acceptance, and independent release approval remain pending. A Linux release
@@ -174,10 +176,11 @@ runtime closure is not an acceptance target while Linux is absent from the
 published artifact allowlist.
 
 The macOS acceptance target now performs a bounded live Apple session and
-emits a sanitized protected-record result. The manual release workflow can
-create an annotated tag and GitHub release after all machine-readable
-approvals pass and publication is explicitly selected. Neither capability
-changes the pending approval or manual-fidelity status.
+emits a sanitized protected-record result bound to the binary's version,
+revision, SHA-256 digest, and approved Developer ID certificate. The manual
+release workflow can create an annotated tag and GitHub release after all
+machine-readable approvals pass and publication is explicitly selected.
+Neither capability changes the pending approval or manual-fidelity status.
 
 ## Release status
 

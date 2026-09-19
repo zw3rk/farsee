@@ -19,7 +19,10 @@ The Makefile `macos-acceptance` target runs a bounded, view-only type-36
 session against the active shared desktop with the null presenter. It requires
 an authorized host and a password descriptor. Its sanitized result proves
 protected-record activation without recording endpoint or credential data.
-Pixel fidelity and input remain manual acceptance work.
+Before it connects, it verifies the embedded version and revision, records the
+binary SHA-256 digest, and verifies the code-signing certificate against the
+approved identity in `release/approval.json`. Pixel fidelity and input remain
+manual acceptance work.
 
 ## 2026-09-19 hardware evidence
 
@@ -60,11 +63,17 @@ A Developer ID-signed post-cleanup candidate forced type 36, shared-desktop
 attachment, and protected records through the official bounded acceptance
 target. It reported `RECORD_LAYER: active` and `RESULT: PASS`. This supersedes
 the failed retry for authentication, protected-record activation, and bounded
-session entry.
+session entry. That runner version did not emit the candidate digest, embedded
+revision, or certificate fingerprint. The result is valid protocol evidence,
+but it is not exact-candidate release evidence.
 
 The run used the null presenter and view-only mode. It did not record a
 framebuffer, cursor rectangle, or input result. Type-36 framebuffer delivery
 and input, plus visible composited `0x0450` cursor fidelity, remain open.
+
+The current runner fails closed unless the selected binary matches the expected
+version and revision and the approved Developer ID certificate. Each frozen
+release candidate must pass that identity-bound run.
 
 ## Verification
 
