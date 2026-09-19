@@ -1,0 +1,14 @@
+# Coverage floors are measured BUILD=coverage values rounded down.
+# Re-measure when adding modules; floors only rise.
+# Columns (TAB-separated):
+# module	min_line_pct	min_branch_pct
+core	91	81
+input	83	70
+rfb	72	56
+present	79	61
+protocol	40	29
+farsee	79	59
+crypto	94	54
+fb	96	76
+app	28	25
+io	82	64

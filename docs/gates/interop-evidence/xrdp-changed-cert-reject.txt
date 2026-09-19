@@ -1,0 +1,7 @@
+[09:17:27:172] [36402:6bcdf001] [WARN][com.freerdp.codec.nsc.neon] - [nsc_init_neon_int]: TODO: Implement neon optimized version of this function
+[09:17:27:193] [36402:6bcdf001] [WARN][com.freerdp.crypto] - [verify_cb]: Certificate verification failure 'self-signed certificate (18)' at stack position 0
+[09:17:27:193] [36402:6bcdf001] [WARN][com.freerdp.crypto] - [verify_cb]: CN = localhost
+[09:17:27:200] [36402:6bcdf001] [ERROR][com.freerdp.core.license] - [license_read_binary_blob_data]: license binary blob::type expected BB_UNKNOWN, got BB_ERROR_BLOB
+[09:17:27:200] [36402:6bcdf001] [ERROR][com.freerdp.core] - [freerdp_connect_begin]: Authentication only, exit status 1
+[09:17:27:201] [36402:f1659d81] [ERROR][com.freerdp.core] - [freerdp_abort_connect_context]: ERRCONNECT_CONNECT_CANCELLED [0x0002000B]
+[09:17:27:170] [36402:6bcdf001] [INFO][com.freerdp.client.x11] - [xf_pre_connect]: Authentication only. Don't connect to X.

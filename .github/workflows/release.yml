@@ -1,0 +1,166 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Release candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (for example, 0.1.0-rc1)"
+        required: true
+        type: string
+      publish:
+        description: "Create and push the v<version> tag and GitHub release"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  verify-candidate:
+    name: "verify candidate (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Require approvals bound to this source candidate
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          nix develop --command make VERSION="$VERSION" check-release-approval
+      - name: Build the advertised Nix package
+        run: nix build .#default -L
+      - name: Run the full release-candidate gate
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          nix develop --command make \
+            BUILD_DIR=${{ runner.temp }}/farsee-ci \
+            VERSION="$VERSION" ci
+      - name: Sustained sanitizer fuzz campaign
+        if: runner.os == 'Linux'
+        run: >-
+          nix develop --command make
+          BUILD_DIR=${{ runner.temp }}/farsee-fuzz
+          RELEASE_FUZZ_DURATION=60 fuzz-release
+
+  release-candidate:
+    name: "release candidate artifacts"
+    needs: verify-candidate
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Require recorded release approvals
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          nix develop --command make VERSION="$VERSION" check-release-approval
+      - name: Optimized, no-RDP, leak, history, and reproducibility gates
+        env:
+          REQUESTED_VERSION: ${{ inputs.version || github.ref_name }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          nix develop --command make \
+            BUILD_DIR="${{ runner.temp }}/farsee-release" \
+            VERSION="$VERSION" release-check no-rdp-check \
+            no-rdp-release-check leak-check \
+            trace-current-check history-trace-check check-secrets \
+            check-reproducible check-reproducible-no-rdp
+      - name: Sustained fuzz campaign
+        run: >-
+          nix develop --command make
+          BUILD_DIR=${{ runner.temp }}/farsee-fuzz
+          RELEASE_FUZZ_DURATION=60 fuzz-release
+      - name: SBOM, reproducible archive, and checksums
+        env:
+          REQUESTED_VERSION: ${{ inputs.version || github.ref_name }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          nix develop --command make \
+            BUILD_DIR="${{ runner.temp }}/farsee-artifacts" \
+            VERSION="$VERSION" release-artifacts
+      - name: Keyless-sign checksum metadata
+        run: >-
+          nix develop --command cosign sign-blob --yes
+          --bundle ${{ runner.temp }}/farsee-artifacts/release-artifacts/SHA256SUMS.sigstore.json
+          ${{ runner.temp }}/farsee-artifacts/release-artifacts/SHA256SUMS
+      - name: Upload candidate artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: farsee-release-candidate
+          path: ${{ runner.temp }}/farsee-artifacts/release-artifacts/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-release:
+    name: "publish release"
+    if: ${{ inputs.publish }}
+    needs: release-candidate
+    runs-on: macos-latest
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Download verified candidate artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: farsee-release-candidate
+          path: dist
+      - name: Create annotated release tag
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          case "$VERSION" in
+            ""|*[!0-9A-Za-z.+-]*)
+              echo "Invalid release version: $REQUESTED_VERSION" >&2
+              exit 2
+              ;;
+          esac
+          TAG="v$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            [ "$(git rev-list -n 1 "$TAG")" = "$GITHUB_SHA" ] || {
+              echo "Existing tag $TAG points at a different commit" >&2
+              exit 1
+            }
+          else
+            git tag -a "$TAG" "$GITHUB_SHA" -m "farsee $VERSION"
+            git push origin "refs/tags/$TAG"
+          fi
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          TAG="v$VERSION"
+          gh release create "$TAG" \
+            --verify-tag \
+            --title "farsee $VERSION" \
+            --notes-file "dist/farsee-$VERSION-release-notes.md" \
+            dist/*

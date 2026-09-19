@@ -1,0 +1,194 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# CI matrix for farsee (plan.md gate G0 / ADR-0006).
+# Nix flake devShell + Makefile. Branch: master (repo default).
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  # --- Package path README advertises (nix build / nix run) ---------------
+  nix-package:
+    name: "nix package (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: nix build
+        run: nix build .#default -L
+      - name: Audit release binary and identity
+        run: >-
+          nix develop --command make
+          BUILD_DIR=${{ runner.temp }}/farsee-package-audit
+          RELEASE_BINARY=${{ github.workspace }}/result/bin/farsee
+          VERSION=0.1.0-dev
+          check-release-binary check-release-version
+      - name: Audit exact published Nix package closure
+        if: runner.os == 'macOS'
+        run: >-
+          nix develop --command make
+          BUILD_DIR=${{ runner.temp }}/farsee-package-audit
+          NIX_PACKAGE_PATH=${{ github.workspace }}/result
+          RELEASE_BINARY=${{ github.workspace }}/result/bin/farsee
+          check-nix-closure check-runtime-closure
+      - name: nix run --version
+        run: nix run .# -- --version
+      - name: nix run --help
+        run: nix run .# -- --help | head -20
+
+  # --- macOS Clang dev build + tests ----------------------------------------
+  macos-clang:
+    name: "macOS · Clang dev"
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Build & test
+        run: nix develop --command bash -c "make clean && make BUILD=dev CC=clang build test"
+
+  # --- Linux Clang dev build + tests ----------------------------------------
+  linux-clang:
+    name: "Linux · Clang dev"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Build & test
+        run: nix develop --command bash -c "make clean && make BUILD=dev CC=clang build test"
+
+  # --- Linux GCC dev build + tests ------------------------------------------
+  linux-gcc:
+    name: "Linux · GCC dev"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Build & test
+        run: nix develop --command bash -c "make clean && make BUILD=dev CC=gcc build test"
+
+  # --- Optimized and feature-minimal release configurations -----------------
+  release-gates:
+    name: "Release and no-RDP (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Optimized release build, tests, and artifact audit
+        run: nix develop --command make release-check
+      - name: No-RDP build and tests
+        run: nix develop --command make no-rdp-check
+      - name: Optimized no-RDP release gates
+        run: nix develop --command make no-rdp-release-check
+      - name: Leak-enabled first-party tests
+        run: nix develop --command make leak-check
+
+  # --- ASan / UBSan ----------------------------------------------------------
+  sanitizer:
+    name: "ASan / UBSan (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Sanitizer build & tests
+        run: nix develop --command bash -c "make clean && make asan-ubsan"
+
+  # --- Linux ThreadSanitizer -------------------------------------------------
+  linux-tsan:
+    name: "Linux · ThreadSanitizer"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Deterministic frame-slot publisher regression
+        run: >-
+          nix develop --command make
+          BUILD_DIR=${{ runner.temp }}/farsee-tsan
+          tsan-check
+
+  # --- Coverage --------------------------------------------------------------
+  coverage:
+    name: "Coverage"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: Coverage build + report
+        # BUILD=coverage must apply to coverage-report as well (default BUILD=dev).
+        run: >-
+          nix develop --command bash -c
+          "make clean && make BUILD=coverage CC=clang build test
+          coverage-report coverage-release-report"
+
+  # --- License / configure / fuzz smoke -------------------------------------
+  audit:
+    name: "License, configure, fuzz-smoke"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      - name: License audit
+        run: nix develop --command bash -c "make check-license"
+      - name: Current-content and reachable-history secret scan
+        run: nix develop --command bash -c "make check-secrets"
+      - name: Current-tree and all-refs trace scan
+        run: nix develop --command bash -c "make trace-current-check history-trace-check"
+      - name: C11/extensions-off self-test
+        run: nix develop --command bash -c "make check-std-c11"
+      - name: Strict-warnings self-test
+        run: nix develop --command bash -c "make check-warnings"
+      - name: Common-headers boundary check
+        run: nix develop --command bash -c "make check-common-headers"
+      # Keep this workflow equivalent to `make ci`: run the loopback-TCP
+      # integration suite, static analyzer, and architecture boundary check.
+      - name: Clang static analyzer
+        run: nix develop --command bash -c "make check-static-analysis"
+      - name: Integration (scripted loopback servers)
+        run: nix develop --command bash -c "make BUILD=dev CC=clang integration"
+      - name: Fuzz smoke
+        run: nix develop --command bash -c "make fuzz-smoke"

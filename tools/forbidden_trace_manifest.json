@@ -1,0 +1,198 @@
+{
+  "schema_version": 2,
+  "retained_identifiers": [
+    "APPLE_SECURITY_TYPE_33",
+    "APPLE_SECURITY_TYPE_36",
+    "RFB_ENCODING_APPLE_0450",
+    "RFB_ENCODING_APPLE_MVS",
+    "apple_mvs_stream_decode",
+    "apple_record_open",
+    "apple_srp_client_begin"
+  ],
+  "rules": [
+    {
+      "id": "vocab_001",
+      "category": "agent_model",
+      "token_sha256": [
+        {"token_count": 1, "digest": "c857d09db23e6822e3600bc06ad8d58f92ed62bc8efd81c753f77048662cb97d"},
+        {"token_count": 1, "digest": "57de4cf40144bdf7d00010f2f5557a7d642c2b9705309bfade167dd313e2ca93"},
+        {"token_count": 1, "digest": "60965168ce762e949600281ba6d01fee136e5b6e8257b1f216f9025ed324474c"},
+        {"token_count": 1, "digest": "3ea125d0bff386e6754b3782b300016fc79a9cf8f8669c0a5c3db64467ddb681"},
+        {"token_count": 1, "digest": "5d72436256ada53828b51895a94bb8489e9f1ac4fe937a8024ef1594e7045ff6"},
+        {"token_count": 1, "digest": "add92b9cde2bdbf3daaf65a0db79e9b1a7fa428b71b4d6ce38c742eb6dca0c1c"},
+        {"token_count": 1, "digest": "67f2d22514622d1be30c14ee9f3cb104503a159a33a656ca91a1953aa9616429"},
+        {"token_count": 1, "digest": "6f7ac1823da81d2e52d1a1549ee69c85bbf8bb56d06682849e7c09da2785ce3b"},
+        {"token_count": 1, "digest": "970ec274ca867815174ebe4eff19282000f9495a6c7254e94991d1fb4dc3df30"},
+        {"token_count": 1, "digest": "2bf548d8056029c73e6e28132d19a3a277a49daf32b1c1ba7b0b7fc7e78bf5cd"},
+        {"token_count": 1, "next_token_regex": ["[0-9]+[a-z0-9]*"], "digest": "053ea4804ef1bb33d4a3d6fb024a614b6d257cebc2bc7cd915da9c9522f37ffc"},
+        {"token_count": 1, "prefix_length": 3, "remainder_regex": "[0-9][a-z0-9]*", "digest": "2bf548d8056029c73e6e28132d19a3a277a49daf32b1c1ba7b0b7fc7e78bf5cd"}
+      ]
+    },
+    {
+      "id": "vocab_002",
+      "category": "process_archaeology",
+      "regex": "\\bREL(?:[._-][0-9]+)+\\b",
+      "ignore_case": true,
+      "token_sha256": [
+        {"token_count": 1, "digest": "94a168d2da574b00ec6c787377278465271cf2b97e68af076fc3eee87eba8664"},
+        {"token_count": 2, "digest": "e3f27b59e163ed12257aedc7796d615881b70640492e419350a4726a62c705c0"},
+        {"token_count": 2, "digest": "4a94a4553158b9a9955445c05bc98b4e275461fbe4dd02ec33eabc1c2f29af19"},
+        {"token_count": 2, "digest": "2602ec12a7f7dd009fcc24bbcea55da9c2c8fbb3383c42d36ac356b4c1c0fb1d"},
+        {"token_count": 2, "digest": "494a65b66663f019b16af7d958cd03fce0a0a9b687dd3caa69014acff7a5bfaf"},
+        {"token_count": 2, "digest": "a33e1f87e0b09b77a36604b60f6ddb50403b0757a21b5ee35570ebc11ce068a5"},
+        {"token_count": 2, "digest": "aadf2e3a5b11b4bc99d5f3b1be2d25029a4e6b7c72a2fcac5718604f496a6302"},
+        {"token_count": 4, "digest": "0221bbb313c20087efb7de5f51940049bc2d3deec29216fbd478f580b7f8add0"},
+        {"token_count": 2, "digest": "05ad0ed31db0bbb6a67b725f31a33c6af3e303743b597066cee074159b1a584d"},
+        {"token_count": 1, "prefix_length": 6, "remainder_regex": "[0-9]+", "digest": "c97ace4c8fef2cee8fa0f3c9f52aab18dbd4f42438afe362ffb8f75ce4c04b84"},
+        {"token_count": 1, "next_token_regex": ["[0-9]+"], "digest": "c97ace4c8fef2cee8fa0f3c9f52aab18dbd4f42438afe362ffb8f75ce4c04b84"},
+        {"token_count": 1, "next_token_regex": ["[0-9]+", "r[0-9]+"], "digest": "254637f72efcddb6a545bccbd0c3bb84e6393647deb5fd344de6584ccc1e743c"},
+        {"token_count": 1, "next_token_regex": ["[a-z][0-9]+"], "digest": "72231043bc1807e6f740b235eb7511ecb33255a6a375435631196de8a9750d4b"},
+        {"token_count": 1, "digest": "4265362daeef37d01e3c2563c476c3f528b1e732998a19122a85be897bc675d0"},
+        {"token_count": 1, "digest": "87e68eefb75f6fb9cb35db04ae006ee4b6b1a9dbbf97aa30f7232e9a4a6376c4"},
+        {"token_count": 1, "digest": "018c267d72f6381a2ec828ada8fb4995323745e5dce6222890ebac36f5323e68"},
+        {"token_count": 1, "next_token_regex": ["[a-z][0-9]+"], "digest": "c97ace4c8fef2cee8fa0f3c9f52aab18dbd4f42438afe362ffb8f75ce4c04b84"},
+        {"token_count": 2, "digest": "0a1ebf6996d1851f85e188c0acdbaa797da5c53fa494178d618acb37998f1370"},
+        {"token_count": 2, "digest": "d541ed7edb5494f0d81a4e9e24aa3c325d2057ac10b5bf6148793991c2ced4ef"},
+        {"token_count": 2, "digest": "ecacab33e8aff7a7086eaff97250c06bddb0ed0d96d54d44faf01a4eca7a0c89"},
+        {"token_count": 2, "digest": "5a9abb2587ca88e5925cecb4035320bffd711b180c618d6f5b8007a5f2d1b73c"},
+        {"token_count": 4, "digest": "57a92c5c553af0a471f4582ab2d6a87cf16e7955bc832c32391a341cb988ffe2"},
+        {"token_count": 4, "digest": "ba3c44058e76f04cd80465f58ea57fdeada8302d69d38c00edfa45ebad8da5d7"}
+      ]
+    },
+    {
+      "id": "vocab_003",
+      "category": "analysis_method",
+      "token_sha256": [
+        {"token_count": 2, "digest": "11108fa8a883da893ae6e502ffc0736ab7992607627c29fc941a8a97e4abfc21"},
+        {"token_count": 2, "digest": "a34966253ddd9a4b15111a32867c4112ba37b383547801b7bb2cf1772b0aceb0"},
+        {"token_count": 2, "digest": "a1d01545e97c960af656f7cc158385be1df89e54b05b0d2423ac54ec02a2ee2d"},
+        {"token_count": 1, "digest": "6a9bb179400afb21957db1e9f878f0c8a7dd1bb443303855c43e0597647a3457"},
+        {"token_count": 1, "digest": "820b81deb041de063d997d3b743d90502f88367088d504b677301cb73ebd8307"},
+        {"token_count": 1, "digest": "5e4edc3e9d98c34d7600433c568d2af26f079768667d7239c6d0f9ea997d9b99"},
+        {"token_count": 1, "digest": "2d0d38e68843216f183110ca3f4212682e1ccf86371e15fbdc0a3f24e697cfe0"},
+        {"token_count": 1, "digest": "6e3fd0b70aa5c52721d996ac6485608b4b1d6a9066541778c2b8bb920742a54f"},
+        {"token_count": 1, "digest": "94805aea13420685a2929f6859071e2e12d650c6609c0d91ed602a9bf227af39"},
+        {"token_count": 1, "digest": "f6ebf749f9339f44e8a5ff914f8d9f169549d4f65b5c82da2af55f73834f8782"},
+        {"token_count": 1, "digest": "5cebec484affe51266c7c0af17ba8f7196f257b1b0ddee4802abe328dbc2ad31"},
+        {"token_count": 1, "digest": "87b4ff72193ca25aed4e0d735b2409146082702072e54d36d8bbc66d331f902a"},
+        {"token_count": 1, "digest": "160ec8e507f2527b4de8f753c43de80b5aca90d0918e709d88c5519d6b122e34"}
+      ]
+    },
+    {
+      "id": "vocab_004",
+      "category": "proprietary_process",
+      "token_sha256": [
+        {"token_count": 1, "digest": "edbf5fb5c518c91143c8cf85d22a0e48ce782610b495ea6d552a85242743f760"},
+        {"token_count": 1, "digest": "37db27485c55d9c749f96ca89a1819e22076b77fb3428eaca5829cf7ca77d084"},
+        {"token_count": 1, "digest": "907573c68839c9db9519bdbb24586bdb8791e39ebf8d96e20a23a3dbc9ed655d"}
+      ]
+    },
+    {
+      "id": "vocab_005",
+      "category": "external_implementation",
+      "token_sha256": [
+        {"token_count": 1, "digest": "29e39cc07440de0e4b36f1789e5310ecee5ccb0f7d1b7eefa403ac173060d94e"},
+        {"token_count": 1, "digest": "c38c7997365958d2b3f911932c0f9e90c2d0ab1b1ded3ddceb9e2370f7fd5bc6"},
+        {"token_count": 1, "digest": "da707a95386b069f5fcaf672d900b625da52b53f82482bab4ad9990d4d41e760"},
+        {"token_count": 1, "digest": "59b29a08e64ec32d1327ac3b77f663b0d13cb6778cd8528cd7cb76960f0fd41c"},
+        {"token_count": 1, "digest": "a7b94713777172dd1a2e9371afcf56b50702a841892bd81da0c16652ebb96427"}
+      ]
+    },
+    {
+      "id": "vocab_006",
+      "category": "temporary_artifact",
+      "token_sha256": [
+        {"token_count": 3, "digest": "6f302c4fbf736220f14398a97ee64a7b6dd8e65678f988b7f6e8f4fb396ca49d"},
+        {"token_count": 3, "digest": "adfb2ce4633f1ee6b59c6535454256102c21601400ab067e9fab3b610219163d"},
+        {"token_count": 3, "digest": "52186bff1a1e12b28254540d1da0e963ec2136d0e424e30deadac449239ba4f2"},
+        {"token_count": 2, "digest": "4926761091c5bcfbaa1321f0e46ca07ef27fa6ac70c74a179157a656ef0704a1"},
+        {"token_count": 1, "digest": "b159d6b0709474962d2f3746d75665744adf4f557eab580900207d2f86d9c153"}
+      ]
+    },
+    {
+      "id": "vocab_007",
+      "category": "sensitive_value",
+      "regex": "(?<![0-9])(?:10(?:\\.[0-9]{1,3}){3}|172\\.(?:1[6-9]|2[0-9]|3[01])(?:\\.[0-9]{1,3}){2}|192\\.168(?:\\.[0-9]{1,3}){2})(?![0-9])|/(?:Users|home)/[^/\\s'\\\"]+(?=/)|\\(user=[A-Za-z0-9][A-Za-z0-9._-]*\\)",
+      "token_sha256": [
+        {"token_count": 4, "digest": "94d8578c38f70362cf8098026da971c18f4d1b641dc32ddd62e5bf0ff85dcbf3"},
+        {"token_count": 3, "digest": "780002ff6c5a72e4115d3274fa66a93cbc58de1133d95bb1eecb278f24f87e25"},
+        {"token_count": 1, "digest": "597f5441e7d174b607873874ed54b974674986ad543e7458e28a038671c9f64c"},
+        {"token_count": 1, "digest": "a9c0216a90aeba2cc54ae34d13847dfa5e449925d82395275220541a87bac45c"}
+      ],
+      "ignore_case": false
+    },
+    {
+      "id": "vocab_008",
+      "category": "agent_attribution",
+      "token_sha256": [
+        {"token_count": 3, "digest": "7c38d5864015fc722b62d2f5b8cf69be50bcea73de4cfb745c8b9780e9e8d9f5"},
+        {"token_count": 2, "digest": "fef85fa25098ecd2c61b6dd4e78a70390ed926dfc819092b2399c6409b28526f"},
+        {"token_count": 2, "digest": "cb56b13d6aedbe45fe160a42e52e58c83ac5218cba57becb40fd5baa5a31e3a9"},
+        {"token_count": 2, "digest": "bf7553b1d58fc5fba0924589f6edb62a1b74e4de02814be4e3d269cb26bd5153"}
+      ]
+    },
+    {
+      "id": "vocab_009",
+      "category": "provenance_trace",
+      "regex": "(?:^|[/_-])e(?:[7-9]|1[0-8])[a-z]?(?=[/_-])",
+      "token_sha256": [
+        {"token_count": 2, "digest": "0e078344a8cd267e3152b6fa5626056452dff8dd304a7d19a245c83392c7d728"},
+        {"token_count": 2, "digest": "3998bbea11ff79b8c05b1d59b2c6cd13046f60bc9e8ca74a05ca833a8a372b21"},
+        {"token_count": 3, "digest": "a183f94c3cd4a375e600363ef1e94d455acf3eba0410ea0ffe6ae2351a564243"},
+        {"token_count": 2, "digest": "3ff91e3534f4d57b420d7fb4a5ce0bf21ba32d00b0c2208373e36bc39847abae"},
+        {"token_count": 2, "digest": "7107082430e8b1530f5ab7f45a2cf40048c615787f5e9b635a18bfc632c1fa95"},
+        {"token_count": 2, "digest": "178ad96691faa8aadc7858d1077847c2cf67619628dcfe0ae18b9c3ce16fd4c7"},
+        {"token_count": 2, "digest": "f1fbe64a905d6125b9e08312a7481bd815e081839e1a77cc31848988b64e12c2"},
+        {"token_count": 2, "digest": "3476f4ea97b60d2ea6d74ec1a084f429cf79fd7e871ffbbbdfd513a13d9d90ea"},
+        {"token_count": 4, "digest": "5aa25b9d0026c322e4240246339669d8d7d9c96c7b0585a097307b7231d03498"},
+        {"token_count": 2, "digest": "44cf41f09b186f7d4a82f175763bef3fddc7facee32b7f3352e5cfbd54c737d7"},
+        {"token_count": 3, "digest": "53a1c5c0baecf822756eb1c094a4628b495ece883ed4b84c04f13917163c4561"},
+        {"token_count": 2, "digest": "527f3fea29674bf93a02029e316419c5b09674f48ac2f66678c4429c652d6548"},
+        {"token_count": 3, "digest": "5de0c462fdc764bc974aca5786072cbf48f78a815ef9c4a4760f9200c515c4a8"},
+        {"token_count": 3, "digest": "0b6aa33cfe667595f42f5d36e873b4b5e1844123082deb2af963863ec678caaf"},
+        {"token_count": 3, "digest": "08a22460387badd802b2fad9ad7ff1a5278801446ebc723af40540c0ced4a39b"},
+        {"token_count": 2, "digest": "ebdaeab64e790c4e5a850cb06f9ac4d313cbf8084e6bfdd851a92fe5d6f5d29a"},
+        {"token_count": 2, "digest": "4eb0072b350b1d17a4842ea04abcdbdf3a0f951865a486adb54de8212ef8effc"},
+        {"token_count": 4, "digest": "2e2f16948caaafe74ec8736b05d2330fbe983efc2e6a782cd21ba1d0475a10fe"},
+        {"token_count": 2, "digest": "85db36a387e7c6f3c68e8ff072e99b6e81e49989935b131a9445b59b24241cb7"},
+        {"token_count": 3, "digest": "a75535e4430f1523894101ffab2aaeaa967c0c3208055f937fccb90f8acf3275"},
+        {"token_count": 2, "digest": "01f728495980957669ef2cccafbe8cce65752a8cbf70284cd2fa00c0600cfcea"},
+        {"token_count": 3, "digest": "0206ff06a6b93799c38edb10784509a7d39eb83136e5a5a3f3c23066e7db8f74"},
+        {"token_count": 2, "digest": "b3ea493bafc53321667df4b95fcb78942997af92dcb8725e91d55d583aa6ac80"},
+        {"token_count": 1, "next_token_regex": ["(?:ack|apple|envelope|five|image|session)"], "digest": "604cee807f644af47487bf2bbab442b94212ac5119f36f995f78e9e4694dae8c"},
+        {"token_count": 1, "next_token_regex": ["on", "live"], "digest": "604cee807f644af47487bf2bbab442b94212ac5119f36f995f78e9e4694dae8c"},
+        {"token_count": 2, "digest": "8da4f2bf74ca07a72dabe010787f87585116c114d9de4799e0d409b32b00733a"},
+        {"token_count": 2, "digest": "819a7c362402e8ee35004435075d2a0d5f2ab21aa54893fe743b3fada8703f48"},
+        {"token_count": 1, "next_token_regex": ["(?:apple|client|every|live|modern|msg[0-9]+|path|server|type|values|wire|[0-9]+)"], "digest": "b737815f5ca9697f685dfe2b5fe1f7b12a180562f97da5a72e90eaedd9890876"},
+        {"token_count": 3, "digest": "161b7ce6f60e9716d6cd083a1729063a5df6b7904f67b3afeb92957c3ce2e5b8"}
+      ]
+    },
+    {
+      "id": "vocab_010",
+      "category": "evidence_artifact",
+      "regex": "^docs/gates/interop-evidence/(?:[^/\\r\\n]+/)*[^/\\r\\n]+\\.(?:bin|png)$",
+      "ignore_case": true
+    },
+    {
+      "id": "vocab_011",
+      "category": "source_policy_trace",
+      "token_sha256": [
+        {"token_count": 3, "digest": "2c34c4a40874d0de324e2011b4bf651fc566daccdf6eb439bdd04f19c48f79ed"},
+        {"token_count": 2, "digest": "d29d101f3024e4362d052b33af48c93fc32b678bec2e20d268d7c14268efbd49"}
+      ]
+    },
+    {
+      "id": "vocab_012",
+      "category": "process_archaeology",
+      "regex": "(?<![A-Za-z0-9])e(?:[7-9]|1[0-8])[a-z]?(?![A-Za-z0-9])",
+      "ignore_case": true,
+      "text_only": true
+    },
+    {
+      "id": "vocab_013",
+      "category": "evidence_artifact",
+      "regex": "^docs/apple/type36-0450-evidence\\.md$",
+      "ignore_case": false
+    }
+  ]
+}

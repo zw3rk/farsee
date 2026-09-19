@@ -1,0 +1,30 @@
+{
+  "schema": 2,
+  "status": "blocked",
+  "candidate_revision": "52678992e4ecd47e24f9a6cdd80350baf5648b37",
+  "candidate_version": "0.1.0-dev",
+  "owner_release_approval": {
+    "approved": false,
+    "approver": null,
+    "approved_on": null,
+    "evidence": null
+  },
+  "apple_provenance_approval": {
+    "approved": false,
+    "approver": null,
+    "approved_on": null,
+    "evidence": null
+  },
+  "independent_review_approval": {
+    "approved": false,
+    "approver": null,
+    "approved_on": null,
+    "evidence": null
+  },
+  "signing_identity_approval": {
+    "approved": true,
+    "approver": "repository-owner",
+    "approved_on": "2026-09-19",
+    "evidence": "sha1:A4D3D91AB75E2CA37F655CD05B01B5EF2D72A00D"
+  }
+}

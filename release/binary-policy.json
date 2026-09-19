@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "forbidden_symbol_patterns": [
+    "^_?fake_apple_",
+    "^_?farsee_cpu_probe_",
+    "^_?mvs_image_plane_research",
+    "^_?mvs_one_record_",
+    "^_?rfb_capture_frame_write$",
+    "^_?rfb_capture_(?:control_|metadata_v1_decode$|schedule_v2_parse$)",
+    "^_?rfb_capture_(?:evidence|setup_evidence)",
+    "^_?rfb_log_escape_remote_tmp$",
+    "^_?rfb_presenter_dump",
+    "^_?rfb_secret_write_file_0600$",
+    "^_?rfb_session_test_",
+    "^_?session_queue_capture_setup",
+    "^_?type33_postauth_probe"
+  ],
+  "forbidden_string_patterns": [
+    "FARSEE_ALLOW_CORE",
+    "FARSEE_LEADER",
+    "FARSEE_APPLE_DUMP_KEYS",
+    "FARSEE_APPLE_DUMP_DIR",
+    "FARSEE_APPLE_DUMP_PLAIN",
+    "FARSEE_APPLE_EXPERIMENT",
+    "FARSEE_APPLE_FORCE_CLEARTEXT_OUT",
+    "FARSEE_APPLE_(?:MODERN_POST|MODERN_ENCODINGS|C2S_MODE|C2S_REKEY|NO_FBUR|SEAL_SEQ|SEAL_AT_ENABLE|SEAL_MSG14_AFTER_FBUR|DEFER_SEAL|C2S_IV_FOLLOW|C2S_SEQ_SYNC|DEFER_MSG14|WAKE|MVS_RESEARCH)",
+    "FARSEE_CLIP_FAKE",
+    "FARSEE_CPU_PROBE",
+    "FARSEE_RFB_DEBUG",
+    "farsee\\.cpu_probe",
+    "FARSEE_SEND_VIEWERINFO",
+    "FARSEE_DUMP_FRAME",
+    "--dump-frame",
+    "--presenter.*\\bdump\\b",
+    "^dump$"
+  ]
+}
