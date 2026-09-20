@@ -95,7 +95,7 @@ required counsel review recorded in
 
 | Mode | Effect |
 |------|--------|
-| (default) | Cleartext compatibility paint after Apple authentication (ZRLE+Raw + FBUR) |
+| (default) | Cleartext compatibility paint after Apple authentication (ZRLE+Raw, private `0x0450` cursor + FBUR) |
 | `--apple-postauth=records` | Protected records after `0x044f`: AES-CBC + SHA-1 checksum, sealed FBUR, ZRLE paint |
 | `--apple-postauth=private` | Protected records with the private Apple encoding list (MVS `0x03f3` first) |
 | `--apple-viewer-info` | Send the optional ViewerInfo prelude |

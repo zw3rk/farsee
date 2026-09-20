@@ -401,6 +401,7 @@ rfb_error rfb_session_internal_setup_after_server_init(
         static const int32_t k_apple_mvp_encs[] = {
             RFB_ENCODING_ZRLE,
             RFB_ENCODING_RAW,
+            RFB_ENCODING_APPLE_0450,
         };
         static const int32_t k_control_encodings[] = {
             RFB_ENCODING_ZRLE,

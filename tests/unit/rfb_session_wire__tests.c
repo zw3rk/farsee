@@ -63,10 +63,11 @@ static const uint8_t wire_test_classic_pixel_format[20] = {
     0x10u, 0x08u, 0x00u, 0x00u, 0x00u, 0x00u,
 };
 
-static const uint8_t wire_test_setenc_clear[12] = {
-    0x02u, 0x00u, 0x00u, 0x02u,
+static const uint8_t wire_test_setenc_clear[16] = {
+    0x02u, 0x00u, 0x00u, 0x03u,
     0x00u, 0x00u, 0x00u, 0x10u,
     0x00u, 0x00u, 0x00u, 0x00u,
+    0x00u, 0x00u, 0x04u, 0x50u,
 };
 
 static const uint8_t wire_test_setenc_control[16] = {
@@ -912,8 +913,8 @@ RFB_TEST(rfb_session_wire, setup_after_server_init__apple_mode_contracts)
         size_t expected_length;
     } setup_case;
     static const setup_case cases[] = {
-        {RFB_APPLE_POSTAUTH_CLEARTEXT, false, false, 40u},
-        {RFB_APPLE_POSTAUTH_CLEARTEXT, false, true, 22u},
+        {RFB_APPLE_POSTAUTH_CLEARTEXT, false, false, 44u},
+        {RFB_APPLE_POSTAUTH_CLEARTEXT, false, true, 26u},
         {RFB_APPLE_POSTAUTH_CLEARTEXT, true, false, 26u},
         {RFB_APPLE_POSTAUTH_RECORDS, false, false, 102u},
         {RFB_APPLE_POSTAUTH_PRIVATE_ENCODINGS, false, false,
