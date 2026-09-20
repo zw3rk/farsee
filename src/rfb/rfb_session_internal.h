@@ -12,6 +12,7 @@
 #include "farsee/apple_mvs_stream.h"
 #include "farsee/apple_record.h"
 #include "farsee/buffer.h"
+#include "farsee/clipboard.h"
 #include "farsee/encoding.h"
 #include "farsee/farsee_display.h"
 #include "farsee/farsee_input.h"
@@ -32,6 +33,10 @@
 typedef uint64_t (*rfb_session_capture_clock_fn)(void *opaque);
 typedef bool (*rfb_session_random_bytes_fn)(void *opaque, uint8_t *out,
                                             size_t length);
+
+// Largest ClientCutText body that fits the current 4096-byte Apple sealed
+// record staging buffer after its 8-byte RFB header and record overhead.
+#define RFB_SESSION_APPLE_CLIPBOARD_MAX_BYTES ((size_t)4050u)
 
 // Private alternate wire schedules. The release frontend never changes
 // these zero-initialized values. Internal tests can select a variant without
@@ -130,6 +135,12 @@ struct rfb_session {
     unsigned held_buttons;
     uint16_t last_ptr_x;
     uint16_t last_ptr_y;
+    uint8_t *clipboard_host;
+    size_t clipboard_host_cap;
+    uint64_t clipboard_next_poll_ms;
+    rfb_clip_loop clipboard_loop;
+    uint32_t clipboard_last_local_hash;
+    bool clipboard_has_last_local;
 };
 
 // Execute exactly one iteration of the production capture branch. Every
@@ -176,6 +187,11 @@ rfb_error rfb_session_internal_process_in(rfb_session *session,
                                           bool *progress);
 rfb_error rfb_session_internal_publish_frame(rfb_session *session);
 void rfb_session_internal_apple_wake(rfb_session *session, bool with_key);
+void rfb_session_internal_receive_clipboard(rfb_session *session,
+                                            const uint8_t *text,
+                                            size_t length);
+rfb_error rfb_session_internal_poll_clipboard(rfb_session *session,
+                                              uint64_t now_ms);
 
 // Build one dormant fresh-rekey transaction with caller-supplied random
 // bytes. The complete cleartext rekey envelope and sealed msg14 are queued as

@@ -419,10 +419,19 @@ void rfb_session_protocol_loop(rfb_session *s)
             s->last_error = e;
             break;
         }
-
         // Process any already-buffered input.
         bool progress = false;
         e = rfb_session_internal_process_in(s, &progress);
+        if (e != RFB_OK) {
+            s->last_error = e;
+            break;
+        }
+        // Poll after inbound processing so a new ServerCutText fingerprint is
+        // visible before the host pasteboard can be echoed. Polling stays on
+        // the protocol owner. The host callback may launch a short-lived
+        // platform helper, but this avoids shared clipboard payload state and
+        // is rate-limited inside the bridge.
+        e = rfb_session_internal_poll_clipboard(s, rfb_io_mono_ms());
         if (e != RFB_OK) {
             s->last_error = e;
             break;
@@ -518,6 +527,12 @@ void rfb_session_destroy(rfb_session *s)
     rfb_buffer_destroy(&s->out);
     rfb_buffer_destroy(&s->apple_plain);
     rfb_buffer_destroy(&s->apple_stage);
+    if (s->clipboard_host != NULL && s->alloc != NULL &&
+        s->alloc->free != NULL) {
+        s->alloc->free(s->alloc, s->clipboard_host);
+        s->clipboard_host = NULL;
+        s->clipboard_host_cap = 0u;
+    }
     if (s->apple_rl_inited) {
         apple_record_destroy(&s->apple_rl);
         s->apple_rl_inited = false;

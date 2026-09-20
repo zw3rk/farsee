@@ -48,6 +48,14 @@ typedef bool (*rfb_apple_attach_choose_fn)(void *ctx,
                                            const char *username,
                                            uint8_t *out_attach);
 
+// Optional host plain-text clipboard adapter. The protocol thread calls these
+// functions synchronously. read_utf8 writes at most cap-1 bytes plus NUL and
+// returns the payload length, or a negative value when no text is available.
+// write_utf8 receives borrowed UTF-8 for the duration of the call.
+typedef long (*rfb_clipboard_read_utf8_fn)(void *ctx, char *out, size_t cap);
+typedef bool (*rfb_clipboard_write_utf8_fn)(void *ctx, const char *text,
+                                            size_t length);
+
 // Apple post-authentication mode. Zero selects cleartext compatibility. The
 // record modes use the 0x044f AES-CBC layer; PRIVATE_ENCODINGS selects the
 // private Apple encoding list.
@@ -128,9 +136,18 @@ typedef struct rfb_session_config {
     // Used by I/O pumps to fail closed instead of polling for hours.
     uint32_t connect_timeout_ms;
     // When true, do not send KeyEvent or PointerEvent, including Apple
-    // black-frame recovery input. Full-refresh requests remain allowed.
+    // black-frame recovery input, or clipboard data. Full-refresh requests
+    // remain allowed.
     // Default false.
     bool view_only;
+    // Bidirectional plain-text clipboard. Disabled unless enabled and both
+    // host callbacks are present. Zero max_bytes selects the common 16 MiB
+    // policy cap; Apple records also enforce their smaller wire-record cap.
+    bool clipboard_enabled;
+    size_t clipboard_max_bytes;
+    rfb_clipboard_read_utf8_fn clipboard_read_utf8;
+    rfb_clipboard_write_utf8_fn clipboard_write_utf8;
+    void *clipboard_ctx;
     // When true, bypass the Apple cleartext sampled-threshold withhold so the
     // slot receives those frames. Default false.
     bool publish_black_frames;

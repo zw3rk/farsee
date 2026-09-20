@@ -398,6 +398,7 @@ PRODUCT_RFB_SRCS := \
 	$(SRC_DIR)/rfb/rfb_server_engine.c \
 	$(SRC_DIR)/rfb/rfb_session.c \
 	$(SRC_DIR)/rfb/rfb_session_capture.c \
+	$(SRC_DIR)/rfb/rfb_session_clipboard.c \
 	$(SRC_DIR)/rfb/rfb_session_connect.c \
 	$(SRC_DIR)/rfb/rfb_session_frame.c \
 	$(SRC_DIR)/rfb/rfb_session_input.c \
@@ -434,6 +435,7 @@ PRODUCT_FB_SRCS := \
 
 PRODUCT_IO_SRCS := \
 	$(SRC_DIR)/io/clipboard.c \
+	$(SRC_DIR)/io/host_clipboard.c \
 	$(SRC_DIR)/io/known_hosts.c \
 	$(SRC_DIR)/io/outbound.c \
 	$(SRC_DIR)/io/poller_posix.c \

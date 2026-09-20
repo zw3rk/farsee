@@ -241,7 +241,7 @@ RFB_TEST(credential_acquire, rfb_frontend__invalid_host_closes_password_fd)
         farsee_run_rfb("", 5900u, NULL, fd, false, true, 0u,
                        FARSEE_AUTH_MODE_AUTO,
                        RFB_APPLE_POSTAUTH_CLEARTEXT, false, false, "null",
-                       0u, true, NULL, 0u, 0u, false,
+                       0u, true, false, NULL, 0u, 0u, false,
                        require_apple_type36),
         2);
     errno = 0;

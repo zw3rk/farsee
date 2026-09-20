@@ -489,7 +489,7 @@ RFB_TEST(rfb_live, run_rfb__null_host__closes_owned_password_fd)
     const int code = farsee_run_rfb(
         NULL, 5900u, NULL, password_fd, false, true, APPLE_ATTACH_LOGIN,
         FARSEE_AUTH_MODE_VNC, RFB_APPLE_POSTAUTH_CLEARTEXT, false, false,
-        "null", 30u, true, NULL, 50u, 50u, false, false);
+        "null", 30u, true, false, NULL, 50u, 50u, false, false);
     RFB_CHECK(stderr_capture_end(&capture, diagnostic, sizeof diagnostic));
 
     RFB_CHECK_EQ_INT(code, 2);
@@ -515,7 +515,7 @@ RFB_TEST(rfb_live, run_rfb__unreadable_passwords__fail_before_connect)
             "127.0.0.1", 1u, NULL, password_fd, false, true,
             APPLE_ATTACH_LOGIN, FARSEE_AUTH_MODE_VNC,
             RFB_APPLE_POSTAUTH_CLEARTEXT, false, false, "null", 30u, true,
-            NULL, 50u, 50u, false, false);
+            false, NULL, 50u, 50u, false, false);
         RFB_CHECK(stderr_capture_end(&capture, diagnostic,
                                      sizeof diagnostic));
 
@@ -554,7 +554,7 @@ RFB_TEST(rfb_live, run_rfb__unsupported_security__explains_policy)
         "127.0.0.1", port, "operator", -1, true, true,
         APPLE_ATTACH_SHARE, FARSEE_AUTH_MODE_VNC,
         RFB_APPLE_POSTAUTH_CLEARTEXT, false, false, "null", 30u, true,
-        NULL, 50u, 1000u, false, false);
+        false, NULL, 50u, 1000u, false, false);
     RFB_CHECK(stderr_capture_end(&capture, diagnostic, sizeof diagnostic));
 
     RFB_CHECK_EQ_INT(code, 4);
@@ -590,7 +590,7 @@ RFB_TEST(rfb_live, run_rfb__rejected_none_auth__explains_auth_failure)
     const int code = farsee_run_rfb(
         "127.0.0.1", port, NULL, -1, true, true, APPLE_ATTACH_LOGIN,
         FARSEE_AUTH_MODE_VNC, RFB_APPLE_POSTAUTH_CLEARTEXT, false, false,
-        "null", 30u, true, NULL, 50u, 1000u, false, false);
+        "null", 30u, true, false, NULL, 50u, 1000u, false, false);
     RFB_CHECK(stderr_capture_end(&capture, diagnostic, sizeof diagnostic));
 
     RFB_CHECK_EQ_INT(code, 4);
@@ -625,7 +625,7 @@ RFB_TEST(rfb_live, run_rfb__peer_closes_before_banner__explains_network_error)
     const int code = farsee_run_rfb(
         "127.0.0.1", port, NULL, -1, true, true, APPLE_ATTACH_LOGIN,
         FARSEE_AUTH_MODE_VNC, RFB_APPLE_POSTAUTH_CLEARTEXT, false, false,
-        "null", 30u, true, NULL, 50u, 1000u, false, false);
+        "null", 30u, true, false, NULL, 50u, 1000u, false, false);
     RFB_CHECK(stderr_capture_end(&capture, diagnostic, sizeof diagnostic));
 
     RFB_CHECK_EQ_INT(code, 4);
@@ -660,7 +660,7 @@ RFB_TEST(rfb_live, run_rfb__classic_none_loopback__reports_protocol_failure)
     const int code = farsee_run_rfb(
         "127.0.0.1", port, NULL, -1, true, true, 0u,
         FARSEE_AUTH_MODE_VNC, RFB_APPLE_POSTAUTH_CLEARTEXT, false, false,
-        "null", 30u, true, NULL, 50u, 1000u, false, false);
+        "null", 30u, true, false, NULL, 50u, 1000u, false, false);
     RFB_CHECK_EQ_INT(code, 5);
     int status = 0;
     RFB_CHECK_EQ_INT(waitpid(server, &status, 0), server);
@@ -682,7 +682,7 @@ RFB_TEST(rfb_live, run_rfb__silent_classic_peer__returns_connect_failure)
     const int code = farsee_run_rfb(
         "127.0.0.1", port, NULL, -1, true, true, 0u,
         FARSEE_AUTH_MODE_VNC, RFB_APPLE_POSTAUTH_CLEARTEXT, false, false,
-        "null", 30u, true, NULL, 50u, 50u, false, false);
+        "null", 30u, true, false, NULL, 50u, 50u, false, false);
     RFB_CHECK(stderr_capture_end(&capture, diagnostic, sizeof diagnostic));
     RFB_CHECK_EQ_INT(code, 4);
     RFB_CHECK(strstr(diagnostic, "timeout during handshake") != NULL);
@@ -713,7 +713,7 @@ RFB_TEST(rfb_live, run_rfb__raw_and_resize_frames__drive_live_workers)
     const int code = farsee_run_rfb(
         "127.0.0.1", port, NULL, -1, true, true, 0u,
         FARSEE_AUTH_MODE_VNC, RFB_APPLE_POSTAUTH_CLEARTEXT, false, false,
-        "null", 60u, true, NULL, 50u, 1000u, false, false);
+        "null", 60u, true, false, NULL, 50u, 1000u, false, false);
     RFB_CHECK_EQ_INT(code, 5);
     int status = 0;
     RFB_CHECK_EQ_INT(waitpid(server, &status, 0), server);
@@ -745,7 +745,7 @@ RFB_TEST(rfb_live, run_rfb__zero_desktop_size__rejects_protocol_update)
     const int code = farsee_run_rfb(
         "127.0.0.1", port, NULL, -1, true, true, 0u,
         FARSEE_AUTH_MODE_VNC, RFB_APPLE_POSTAUTH_CLEARTEXT, false, false,
-        "null", 60u, true, NULL, 50u, 1000u, false, false);
+        "null", 60u, true, false, NULL, 50u, 1000u, false, false);
     RFB_CHECK_EQ_INT(code, 5);
     int status = 0;
     RFB_CHECK_EQ_INT(waitpid(server, &status, 0), server);

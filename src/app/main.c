@@ -117,7 +117,7 @@ static int farsee_main_after_core_dump_guard(void *context)
             (rfb_apple_postauth_mode)opt.apple_postauth,
             opt.apple_send_viewer_info, opt.apple_disable_wake_keys,
             opt.has_presenter ? opt.presenter : NULL, opt.max_fps,
-            opt.view_only, &opt.leader, opt.view_scale_pct,
+            opt.view_only, opt.clipboard_on, &opt.leader, opt.view_scale_pct,
             (uint32_t)opt.connect_timeout_ms, opt.accept_new_host,
             opt.apple_require_type_36);
     }

@@ -10,6 +10,7 @@
 #include "app/live_presenter.h"
 #include "app/live_shell.h"
 #include "app/rfb_live_ui.h"
+#include "io/host_clipboard.h"
 
 #include "farsee/allocator.h"
 #include "farsee/apple_postauth.h"
@@ -46,6 +47,19 @@
 
 // Cooperative stop for SIGINT/SIGTERM (lock-free atomic; signal-safe store).
 static farsee_atomic_int g_rfb_stop = 0;
+
+static long rfb_live_clipboard_read(void *ctx, char *out, size_t capacity)
+{
+    (void)ctx;
+    return farsee_host_clipboard_get_utf8(out, capacity);
+}
+
+static bool rfb_live_clipboard_write(void *ctx, const char *text,
+                                     size_t length)
+{
+    (void)ctx;
+    return farsee_host_clipboard_set_utf8(text, length);
+}
 
 static void rfb_on_signal(int sig)
 {
@@ -590,7 +604,7 @@ int farsee_run_rfb(const char *host, uint16_t port,
                    bool apple_send_viewer_info,
                    bool apple_disable_wake_keys,
                    const char *presenter_name,
-                   uint32_t max_fps, bool view_only,
+                   uint32_t max_fps, bool view_only, bool clipboard_on,
                    const farsee_cli_leader *leader,
                    uint32_t view_scale_pct,
                    uint32_t connect_timeout_ms,
@@ -752,6 +766,11 @@ int farsee_run_rfb(const char *host, uint16_t port,
     cfg.stop_flag = &g_rfb_stop;
     cfg.max_fps = max_fps;
     cfg.view_only = view_only;
+    cfg.clipboard_enabled = clipboard_on && !view_only;
+    if (cfg.clipboard_enabled) {
+        cfg.clipboard_read_utf8 = rfb_live_clipboard_read;
+        cfg.clipboard_write_utf8 = rfb_live_clipboard_write;
+    }
     cfg.publish_black_frames = false;
     cfg.connect_timeout_ms =
         (connect_timeout_ms == 0u) ? 30000u : connect_timeout_ms;

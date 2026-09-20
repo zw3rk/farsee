@@ -2,9 +2,8 @@
 //
 // Farsee RDP host pasteboard access (R6 cliprdr text path, §15.13).
 //
-// Reads/writes UTF-8 plain text on the local host pasteboard so the
-// cliprdr channel can bridge remote text. No FreeRDP types. PRIVATE to
-// src/protocol/rdp/.
+// Compatibility API for cliprdr. The implementation delegates to the shared
+// host adapter used by live RFB. No FreeRDP types. PRIVATE to src/protocol/rdp/.
 //
 #ifndef FARSEE_SRC_PROTOCOL_RDP_RDP_HOST_CLIPBOARD_H
 #define FARSEE_SRC_PROTOCOL_RDP_RDP_HOST_CLIPBOARD_H

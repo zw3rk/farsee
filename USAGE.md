@@ -40,6 +40,7 @@ install.
 | `--user NAME` | Username (RDP / Apple) |
 | `--auth auto\|vnc\|apple` | RFB security selection policy |
 | `--view-scale PCT` | Live view scale percent |
+| `--clipboard on\|off` | Bidirectional plain-text clipboard forwarding (default: on; view-only disables it) |
 | `-v` / `--verbose` | FreeRDP/WinPR INFO logs for RDP targets in developer builds only |
 | `--log-level off\|error\|warn\|info\|debug\|trace` | Select FreeRDP/WinPR logs for RDP targets in developer builds only |
 | `--version` | Build id / version |
@@ -64,6 +65,21 @@ During Kitty sessions the status line shows host/port help plus:
 - **KiB/s** — downlink over a 250 ms latched window (`link_rate_pub`)
 
 Protocol thread latches rate; present/input only load atomics. See ADR-0010.
+
+## Clipboard
+
+RFB and Apple sessions poll the local plain-text clipboard and forward changed
+text with ClientCutText. ServerCutText updates the local clipboard. Farsee
+removes terminal control bytes, rejects transfers above the configured cap,
+and suppresses immediate clipboard echoes. Classic RFB converts between the
+protocol's ISO-8859-1 text and host UTF-8. Apple sessions use UTF-8. Text that
+cannot be represented by classic RFB is not sent. Protected Apple sessions
+currently limit one clipboard item to 4050 bytes because one item must fit one
+protected record.
+
+Use `--clipboard off` to disable both directions. `--view-only` also disables
+both directions. On macOS, the host adapter uses `pbpaste` and `pbcopy`. On
+Linux it tries `wl-paste`/`wl-copy`, then `xclip`.
 
 ## Apple security types 33 and 36
 

@@ -29,6 +29,8 @@ extern "C" {
 // Null presentation stays single-threaded on the protocol path.
 // view_scale_pct: percent of max aspect-fit Kitty place (20..100).
 // 0 → FARSEE_VIEW_SCALE_DEFAULT_PCT (50). Leader C-] + / - adjusts live.
+// clipboard_on enables bidirectional plain-text forwarding; view_only
+// overrides it and disables both clipboard directions.
 // apple_attach: 0=ask (TTY prompt), 1=share console, 2=login-as-user.
 // Non-interactive paths resolve ask → login.
 // password_fd >= 0 transfers descriptor ownership at function entry. The
@@ -42,7 +44,7 @@ int farsee_run_rfb(const char *host, uint16_t port,
                    bool apple_send_viewer_info,
                    bool apple_disable_wake_keys,
                    const char *presenter_name,
-                   uint32_t max_fps, bool view_only,
+                   uint32_t max_fps, bool view_only, bool clipboard_on,
                    const farsee_cli_leader *leader,
                    uint32_t view_scale_pct,
                    uint32_t connect_timeout_ms,

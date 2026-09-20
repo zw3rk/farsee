@@ -247,6 +247,13 @@ static void session_eng_on_desktop_size(void *hook_ctx, uint16_t width,
     }
 }
 
+static void session_eng_on_cut_text(void *hook_ctx, const uint8_t *text,
+                                    size_t length)
+{
+    rfb_session_internal_receive_clipboard((rfb_session *)hook_ctx, text,
+                                           length);
+}
+
 // Returns:
 //   RFB_OK            — progress or need more input
 //   RFB_ERR_*         — hard failure
@@ -291,7 +298,7 @@ rfb_error rfb_session_internal_process_in(rfb_session *s, bool *progress)
     ctx.hooks.hook_ctx = s;
     ctx.hooks.on_publish = session_eng_on_publish;
     ctx.hooks.on_bell = NULL; // terminal bell is presenter-owned
-    ctx.hooks.on_cut_text = NULL; // clipboard path not yet session-wired
+    ctx.hooks.on_cut_text = session_eng_on_cut_text;
     ctx.hooks.on_fbu_begin = session_eng_on_fbu_begin;
     ctx.hooks.on_rect_decoded = session_eng_on_rect_decoded;
     ctx.hooks.on_desktop_size = session_eng_on_desktop_size;

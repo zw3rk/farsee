@@ -397,6 +397,7 @@ static rfb_error session_prepare(rfb_session *session,
         return RFB_ERR_INTERNAL;
     }
     farsee_key_ledger_init(&session->key_ledger);
+    rfb_clip_loop_init(&session->clipboard_loop);
     session->held_buttons = 0u;
     session->connect_deadline_mono_ms = rfb_session_connect_deadline(
         rfb_io_mono_ms(), config->connect_timeout_ms);
