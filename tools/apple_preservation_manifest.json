@@ -223,8 +223,8 @@
     "tests/unit/security_record_oracle__tests.c",
     "tests/unit/security_select__tests.c"
   ],
-  "test_inventory_count": 1036,
-  "test_inventory_sha256": "aa98b38d26c6636802de9bcf955fabeb92664d042b214f3ca8c266abdd6ea1aa",
+  "test_inventory_count": 1038,
+  "test_inventory_sha256": "1c66d5907e3ea44bc91b548deaa3010fb78c17902dff5aa5f35f991bb1566112",
   "protected_semantics_sha256": {
     "include/farsee/apple_auth.h": "3b7bd88d24d99aac674091160ba6df78f4feeedf8cc7360519167d0d557161a7",
     "include/farsee/apple_crypto.h": "c0278404126171a91de799d4fef9ebb5ba1f98ae2455f3f89b07b4e114ceed07",
@@ -381,7 +381,7 @@
     "tests/unit/normalized_input__tests.c": "1ebdbc940d71f4c5cb27bac27a81a3d5fc905a213e6cd48ace74faf1814c3bac",
     "tests/unit/normalized_keymap__tests.c": "2adf8e9b226877587a41d644fc6be675a9d56235f093f3939c6c972a538681ff",
     "tests/unit/normalized_layout__tests.c": "61aa1c59e924ea3e3b63babd579583a01b9650c8cf5f578d2e3de11ad741417e",
-    "tests/unit/pacing__tests.c": "be6e418c0ac50d55390aae812717cec036a49543182bbd9b5933acea48c7777b",
+    "tests/unit/pacing__tests.c": "9fe4cc8e15442dc595fc9cb532ac17242367295cba8efecc7424181c81f824b7",
     "tests/unit/rfb_capture_campaign__tests.c": "22303639c100d754f4ca9d987c20eafa2889cbd9fce9d5021038739c42d76d7c",
     "tests/unit/rfb_capture_control__tests.c": "2b35a2c69a5ecbf416cadd84aa1628af538082624760812f4a0329b4f5e8ae20",
     "tests/unit/rfb_capture_scheduler__tests.c": "469ac5b95ad3c67f65b97952e9029013521bab9370ea2b139c4e661c2ebca4d6",
@@ -389,7 +389,7 @@
     "tests/unit/rfb_prompt_signal__tests.c": "f9e79dd921691d62c8303c9f1f4f9bb9f78587a9b3a6f37dcb4fcee8260d269a",
     "tests/unit/rfb_server_engine__tests.c": "73673683904f5cf32c3090a88904075c44780d01327f1031d3c07cae324d302a",
     "tests/unit/rfb_session__tests.c": "9396b6d23ff71ab492073fdf360ba74c97a75a89ebf872a6efa5ea1dd1e38949",
-    "tests/unit/rfb_session_clipboard__tests.c": "214fee0198ca20d5780bd215ccc9a4bff3dacac7bfcf8accc7be74f040d97b84",
+    "tests/unit/rfb_session_clipboard__tests.c": "fde141ae0650ed0996eb5c2e29377a34c79b943bd2676aff96c2ffe2c75c5540",
     "tests/unit/rfb_session_dialect__tests.c": "fcb0eb73480aaf1ed70ae80d730ad8ea1f21e57cf1d97577310b834eec1537d9",
     "tests/unit/rfb_session_frame_coverage__tests.c": "720de9e5c5fae9c8e345346c8189218b639279b08e27d37f1c80fa15b9055674",
     "tests/unit/rfb_session_fresh_rekey__tests.c": "3985dd5c6d8653b0de35de570cddac0f314e0b13cf1950341ee2d904dedd4df9",

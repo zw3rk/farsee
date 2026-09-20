@@ -129,3 +129,21 @@ RFB_TEST(pacing, pacing__metrics__update_and_present_counted) {
     RFB_CHECK_EQ_UINT(p.metrics_rects_decoded, 5u);
     RFB_CHECK_EQ_UINT(p.metrics_bytes_received, 1000u);
 }
+
+RFB_TEST(pacing, pacing__public_null_guards_are_safe)
+{
+    bool incremental = false;
+
+    rfb_pacing_init(NULL, 30u);
+    RFB_CHECK(!rfb_pacing_should_send_request(NULL, &incremental, 0u));
+
+    rfb_pacing p;
+    rfb_pacing_init(&p, 30u);
+    RFB_CHECK(!rfb_pacing_should_send_request(&p, NULL, 0u));
+    rfb_pacing_request_sent(NULL, false, 0u);
+    rfb_pacing_update_received(NULL);
+    rfb_pacing_force_full_refresh(NULL);
+    rfb_pacing_set_backpressure(NULL, true);
+    rfb_pacing_presented(NULL, 0u, 0u, 0u);
+    RFB_CHECK(rfb_pacing_can_present(NULL, 0u));
+}

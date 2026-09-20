@@ -341,6 +341,104 @@ RFB_TEST(rfb_session_clipboard,
 }
 
 RFB_TEST(rfb_session_clipboard,
+         poll__limit_allocator_and_latin1_edges_are_bounded)
+{
+    static const uint8_t remote[] = "x";
+    rfb_session session;
+    clipboard_fake fake;
+    memset(&fake, 0, sizeof fake);
+    clipboard_session_init(&session, &fake, RFB_SESSION_DIALECT_CLASSIC);
+
+    // Exercise the configured-limit clamp without allocating the maximum
+    // host buffer.
+    session.cfg.clipboard_max_bytes = RFB_LIMIT_CLIPBOARD_BYTES + 1u;
+    rfb_session_internal_receive_clipboard(&session, NULL, 0u);
+    RFB_CHECK_EQ_UINT(fake.writes, 1u);
+
+    rfb_allocator invalid = *rfb_default_allocator();
+    invalid.alloc = NULL;
+    invalid.free = NULL;
+    session.alloc = &invalid;
+    rfb_session_internal_receive_clipboard(
+        &session, remote, sizeof remote - 1u);
+    RFB_CHECK_EQ_UINT(fake.writes, 1u);
+    session.alloc = rfb_default_allocator();
+
+    session.cfg.clipboard_max_bytes = 4u;
+    static const char truncated[] = { (char)0xc2u };
+    fake.read_text = truncated;
+    fake.read_len = sizeof truncated;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1000u),
+                     RFB_OK);
+
+    static const char low_continuation[] = { (char)0xc2u, 'A' };
+    fake.read_text = low_continuation;
+    fake.read_len = sizeof low_continuation;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1250u),
+                     RFB_OK);
+
+    static const char high_continuation[] = {
+        (char)0xc2u, (char)0xc0u
+    };
+    fake.read_text = high_continuation;
+    fake.read_len = sizeof high_continuation;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1500u),
+                     RFB_OK);
+    RFB_CHECK_EQ_UINT(fake_io_outbox_len(&fake.io), 0u);
+
+    // Reuse the host buffer, then fail the classic conversion allocation.
+    static const char valid[] = "ok";
+    fake.read_text = valid;
+    fake.read_len = sizeof valid - 1u;
+    invalid = *rfb_default_allocator();
+    invalid.alloc = NULL;
+    session.alloc = &invalid;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1750u),
+                     RFB_OK);
+    RFB_CHECK_EQ_UINT(fake_io_outbox_len(&fake.io), 0u);
+    session.alloc = rfb_default_allocator();
+
+    // Grow an existing host buffer so both sides of the reuse check execute.
+    session.cfg.clipboard_max_bytes = 8u;
+    fake.override_read_result = true;
+    fake.read_result = 0;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 2000u),
+                     RFB_OK);
+    RFB_CHECK(session.clipboard_host_cap >= 9u);
+
+    // Cover the protected-session limit comparison when no clamp is needed.
+    session.apple_records_active = true;
+    session.cfg.clipboard_max_bytes = 1u;
+    rfb_session_internal_receive_clipboard(&session, NULL, 0u);
+    RFB_CHECK_EQ_UINT(fake.writes, 2u);
+
+    fake.override_read_result = true;
+    fake.read_result = 0;
+    session.clipboard_next_poll_ms = UINT64_MAX;
+    RFB_CHECK_EQ_INT(
+        rfb_session_internal_poll_clipboard(&session, UINT64_MAX), RFB_OK);
+    RFB_CHECK_EQ_UINT(session.clipboard_next_poll_ms, UINT64_MAX);
+
+    // These scalar boundaries cover validator and repair lead-byte paths that
+    // the bridge normally accepts before conversion.
+    static const uint8_t plane_one[] = {
+        0xf1u, 0x80u, 0x80u, 0x80u
+    };
+    static const uint8_t invalid_lead[] = { 0xf5u };
+    uint8_t repaired[sizeof plane_one] = { 0u };
+    size_t repaired_length = 0u;
+    RFB_CHECK(rfb_clip_utf8_valid(plane_one, sizeof plane_one));
+    RFB_CHECK(!rfb_clip_utf8_valid(invalid_lead, sizeof invalid_lead));
+    RFB_CHECK(rfb_clip_utf8_repair(
+        plane_one, sizeof plane_one, repaired, sizeof repaired,
+        &repaired_length));
+    RFB_CHECK_EQ_UINT(repaired_length, sizeof plane_one);
+    RFB_CHECK_MEM_EQ(repaired, plane_one, sizeof plane_one);
+
+    clipboard_session_destroy(&session, &fake);
+}
+
+RFB_TEST(rfb_session_clipboard,
          poll__classic_rejects_unicode_outside_latin1)
 {
     rfb_session session;
