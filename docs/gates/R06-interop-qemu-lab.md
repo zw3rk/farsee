@@ -67,6 +67,24 @@ and keyboard correctness. The guest was paused after testing. UTM could not
 save machine state because the emulated NVMe device does not support snapshots;
 the guest was not force-powered off.
 
+### 2026-09-20 exact-head access recheck
+
+The exact signed head candidate at
+`2051d2e25af67581770d9d3263ced862a47d255b` reached the Windows 11 ARM lab and
+advanced to credential validation. The operator-supplied credential and the
+credential retained on the unattended-install medium both returned
+`ERRCONNECT_LOGON_FAILURE`. The guest console independently rejected the
+operator-supplied credential, which distinguishes the current access failure
+from a Farsee-only authentication defect.
+
+The VM configuration was restored to its original normal-boot form after a
+read-only recovery inspection. Temporary recovery media were removed, the
+guest shut down cleanly, and its original QCOW2 image passed `qemu-img check`
+without errors. The image was not modified. Current-head Windows framebuffer,
+input, clipboard, resize, certificate-replacement, peer-disconnect, and
+terminal-restoration acceptance remain uncredited until authorized guest
+access is restored.
+
 ## `--cert pin` escalation packet (resolved)
 
 ### Verified facts

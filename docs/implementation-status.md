@@ -177,6 +177,19 @@ The post-history-cleanup source candidate produced the following fresh results:
   revision `8de3cb6` restores `O_NONBLOCK` for the live PTY topology. Darwin's
   kernel added its private `FWASWRITTEN` bookkeeping bit after terminal output;
   that bit is not an inherited nonblocking mode or a user-settable status flag.
+- A later exact signed head recheck at revision
+  `2051d2e25af67581770d9d3263ced862a47d255b` again completed forced type-36
+  authentication and protected-record activation. The endpoint returned only
+  black full-size updates across protected-record, cleartext, and private
+  post-auth modes. Independently observed pointer and keyboard state did not
+  change, clipboard transfer failed in both directions, and no `0x0450`
+  rectangle was observed. These failures keep the rows open without proving
+  whether the changed behavior is in the client or the current endpoint state.
+- The same head candidate reached the Windows 11 ARM lab's credential boundary,
+  but both available credentials were stale and the guest console independently
+  rejected the operator-supplied value. The original guest image remains
+  unchanged and passes `qemu-img check`; current-head Windows fidelity rows
+  remain open until authorized guest access is restored.
 
 The signing identity is approved. Extended live interoperability, manual
 acceptance, and independent release approval remain pending. A Linux release

@@ -66,3 +66,28 @@ endpoint.
 | Standard-stream flags | PASS | `O_NONBLOCK` was clear after exit. Darwin's added `FWASWRITTEN` bit is kernel bookkeeping, not a user-settable status flag. |
 
 All `NOT RUN` rows remain release blockers.
+
+### 2026-09-20 head-candidate recheck
+
+The exact signed head candidate
+`2051d2e25af67581770d9d3263ced862a47d255b` had SHA-256
+`dcc0dbde678785ac9074fef6929d28b8f9a160534b2cb8c572592fd56851c054`
+and the approved Developer ID identity. The automated macOS acceptance target
+passed. The following additional live checks used the same binary.
+
+| Row | Result | Sanitized observation |
+|-----|--------|-----------------------|
+| Type 36 and shared-desktop attach | PASS | The peer completed SRP authentication and activated protected records. |
+| Visible framebuffer | FAIL | Repeated full-size updates remained uniformly black in protected-record, cleartext, and private post-auth modes. The same endpoint had returned visible content to the earlier signed candidate, so this result does not isolate client behavior from current endpoint state. |
+| Apple `0x0450` receive and composition | NOT RUN | No `0x0450` rectangle was observed. The black framebuffer state prevented live composition acceptance. |
+| Pointer, scroll, and keyboard fidelity | FAIL | The server accepted the automatic post-ServerInit pointer sequence, but subsequent pointer and keyboard events did not change independently observed console state. Scroll fidelity could not be established. |
+| Clipboard in both directions | FAIL | Both directions left the destination pasteboard unchanged in protected-record and cleartext sessions. Original pasteboard contents were restored after the checks. |
+| Leader-key disconnect and terminal restoration | PASS | The live input loop processed the bounded leader command, exited, and restored terminal state. |
+| Terminal resize and peer disconnect | NOT RUN | These rows were not repeated against this exact head candidate. |
+
+The exact signed head candidate also reached the Windows 11 ARM lab over RDP,
+but both the operator-supplied credential and the unattended-install credential
+were stale. RDP returned `ERRCONNECT_LOGON_FAILURE`, and the guest console
+independently rejected the operator-supplied credential. The original guest
+disk passed `qemu-img check` and remains unchanged. No Windows fidelity row can
+be credited to this head candidate until authorized guest access is restored.
