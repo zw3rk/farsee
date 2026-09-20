@@ -36,8 +36,10 @@ typedef struct live_tty_guard {
     bool active;
     bool stdout_fl_valid;
     int stdout_fl;
+    bool stdout_fl_armed;
     bool stdin_fl_valid;
     int stdin_fl;
+    bool stdin_fl_armed;
 } live_tty_guard;
 
 static live_tty_guard g_tty_guard = {.tty_fd = -1};
@@ -129,6 +131,28 @@ static void live_shell_disarm_fatal_restorers(void)
     }
 }
 
+static void live_shell_snapshot_standard_flags(void)
+{
+    // stdin and stdout can be dup'ed references to one PTY open-file
+    // description. Snapshot both before changing either so the second arm
+    // cannot record Farsee's O_NONBLOCK change as the caller's original
+    // state.
+    if (!g_tty_guard.stdout_fl_valid) {
+        const int flags = fcntl(STDOUT_FILENO, F_GETFL, 0);
+        if (flags >= 0) {
+            g_tty_guard.stdout_fl = flags;
+            g_tty_guard.stdout_fl_valid = true;
+        }
+    }
+    if (!g_tty_guard.stdin_fl_valid) {
+        const int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+        if (flags >= 0) {
+            g_tty_guard.stdin_fl = flags;
+            g_tty_guard.stdin_fl_valid = true;
+        }
+    }
+}
+
 void farsee_live_shell_stdio_nonblock_arm(int fd)
 {
     if (fd < 0) {
@@ -136,30 +160,22 @@ void farsee_live_shell_stdio_nonblock_arm(int fd)
     }
     live_shell_register_atexit_once();
     if (fd == STDOUT_FILENO) {
-        if (!g_tty_guard.stdout_fl_valid) {
-            const int flags = fcntl(STDOUT_FILENO, F_GETFL, 0);
-            if (flags >= 0) {
-                g_tty_guard.stdout_fl = flags;
-                g_tty_guard.stdout_fl_valid = true;
-            }
-        }
+        live_shell_snapshot_standard_flags();
         const int flags = fcntl(STDOUT_FILENO, F_GETFL, 0);
-        if (flags >= 0 && (flags & O_NONBLOCK) == 0) {
-            (void)fcntl(STDOUT_FILENO, F_SETFL, flags | O_NONBLOCK);
+        if (flags >= 0 &&
+            ((flags & O_NONBLOCK) != 0 ||
+             fcntl(STDOUT_FILENO, F_SETFL, flags | O_NONBLOCK) == 0)) {
+            g_tty_guard.stdout_fl_armed = true;
         }
         return;
     }
     if (fd == STDIN_FILENO) {
-        if (!g_tty_guard.stdin_fl_valid) {
-            const int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-            if (flags >= 0) {
-                g_tty_guard.stdin_fl = flags;
-                g_tty_guard.stdin_fl_valid = true;
-            }
-        }
+        live_shell_snapshot_standard_flags();
         const int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-        if (flags >= 0 && (flags & O_NONBLOCK) == 0) {
-            (void)fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+        if (flags >= 0 &&
+            ((flags & O_NONBLOCK) != 0 ||
+             fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK) == 0)) {
+            g_tty_guard.stdin_fl_armed = true;
         }
         return;
     }
@@ -231,16 +247,18 @@ void farsee_live_shell_tty_guard_write_seq(const char *sequence)
 
 void farsee_live_shell_tty_guard_restore(void)
 {
-    if (g_tty_guard.stdout_fl_valid) {
+    if (g_tty_guard.stdout_fl_valid && g_tty_guard.stdout_fl_armed) {
         (void)fcntl(STDOUT_FILENO, F_SETFL, g_tty_guard.stdout_fl);
-        g_tty_guard.stdout_fl_valid = false;
-        g_tty_guard.stdout_fl = 0;
     }
-    if (g_tty_guard.stdin_fl_valid) {
+    if (g_tty_guard.stdin_fl_valid && g_tty_guard.stdin_fl_armed) {
         (void)fcntl(STDIN_FILENO, F_SETFL, g_tty_guard.stdin_fl);
-        g_tty_guard.stdin_fl_valid = false;
-        g_tty_guard.stdin_fl = 0;
     }
+    g_tty_guard.stdout_fl_valid = false;
+    g_tty_guard.stdout_fl = 0;
+    g_tty_guard.stdout_fl_armed = false;
+    g_tty_guard.stdin_fl_valid = false;
+    g_tty_guard.stdin_fl = 0;
+    g_tty_guard.stdin_fl_armed = false;
 
     if (!g_tty_guard.active) {
         g_tty_guard.tty_fd = -1;

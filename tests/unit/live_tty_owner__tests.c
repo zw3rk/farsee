@@ -72,12 +72,70 @@ static int stdin_fallback_child(void)
     return 0;
 }
 
+static int shared_standard_stream_child(void)
+{
+    int master = -1;
+    int slave = -1;
+    if (openpty(&master, &slave, NULL, NULL, NULL) != 0 ||
+        dup2(slave, STDIN_FILENO) < 0 ||
+        dup2(slave, STDOUT_FILENO) < 0 ||
+        dup2(slave, STDERR_FILENO) < 0) {
+        return 2;
+    }
+    close(slave);
+    farsee_live_shell_tty_guard_restore();
+
+    const int current = fcntl(STDIN_FILENO, F_GETFL, 0);
+    if (current < 0 ||
+        fcntl(STDIN_FILENO, F_SETFL, current & ~O_NONBLOCK) != 0) {
+        return 3;
+    }
+    const int initial = fcntl(STDIN_FILENO, F_GETFL, 0);
+    if (initial < 0 || fcntl(STDOUT_FILENO, F_GETFL, 0) != initial ||
+        fcntl(STDERR_FILENO, F_GETFL, 0) != initial) {
+        return 4;
+    }
+
+    // A PTY wrapper can make all three standard descriptors duplicates of
+    // one slave open-file description. Arming stdout changes stdin too, so a
+    // later stdin arm must not mistake that change for the original state.
+    farsee_live_shell_stdio_nonblock_arm(STDOUT_FILENO);
+    farsee_live_shell_stdio_nonblock_arm(STDIN_FILENO);
+    if ((fcntl(STDIN_FILENO, F_GETFL, 0) & O_NONBLOCK) == 0 ||
+        (fcntl(STDOUT_FILENO, F_GETFL, 0) & O_NONBLOCK) == 0) {
+        return 5;
+    }
+
+    farsee_live_shell_tty_guard_restore();
+    if (fcntl(STDIN_FILENO, F_GETFL, 0) != initial ||
+        fcntl(STDOUT_FILENO, F_GETFL, 0) != initial ||
+        fcntl(STDERR_FILENO, F_GETFL, 0) != initial) {
+        return 6;
+    }
+    close(master);
+    return 0;
+}
+
 RFB_TEST(live_tty_owner, stdin_fallback__guard_restores_exact_flags_twice)
 {
     const pid_t child = fork();
     RFB_CHECK(child >= 0);
     if (child == 0) {
         _exit(stdin_fallback_child());
+    }
+    int status = 0;
+    RFB_CHECK(waitpid(child, &status, 0) == child);
+    RFB_CHECK(WIFEXITED(status));
+    RFB_CHECK_EQ_INT(WIFEXITED(status) ? WEXITSTATUS(status) : -1, 0);
+}
+
+RFB_TEST(live_tty_owner,
+         shared_standard_streams__restore_original_open_file_flags)
+{
+    const pid_t child = fork();
+    RFB_CHECK(child >= 0);
+    if (child == 0) {
+        _exit(shared_standard_stream_child());
     }
     int status = 0;
     RFB_CHECK(waitpid(child, &status, 0) == child);
