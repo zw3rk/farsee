@@ -24,6 +24,9 @@ typedef struct clipboard_fake {
     fake_io io;
     const char *read_text;
     size_t read_len;
+    bool override_read_result;
+    long read_result;
+    bool reject_write;
     unsigned reads;
     char written[128];
     size_t written_len;
@@ -47,6 +50,9 @@ static long clipboard_fake_read(void *ctx, char *out, size_t cap)
 {
     clipboard_fake *fake = (clipboard_fake *)ctx;
     fake->reads++;
+    if (fake->override_read_result) {
+        return fake->read_result;
+    }
     if (fake->read_text == NULL || fake->read_len + 1u > cap) {
         return -1;
     }
@@ -59,7 +65,8 @@ static bool clipboard_fake_write(void *ctx, const char *text, size_t length)
 {
     clipboard_fake *fake = (clipboard_fake *)ctx;
     fake->writes++;
-    if (text == NULL || length >= sizeof fake->written) {
+    if (fake->reject_write || text == NULL ||
+        length >= sizeof fake->written) {
         return false;
     }
     memcpy(fake->written, text, length);
@@ -170,6 +177,42 @@ RFB_TEST(rfb_session_clipboard,
 }
 
 RFB_TEST(rfb_session_clipboard,
+         receive__invalid_input_allocation_and_host_failures_are_bounded)
+{
+    static const uint8_t remote[] = "remote";
+    rfb_session_internal_receive_clipboard(NULL, remote,
+                                           sizeof remote - 1u);
+
+    rfb_session session;
+    clipboard_fake fake;
+    memset(&fake, 0, sizeof fake);
+    clipboard_session_init(&session, &fake,
+                           RFB_SESSION_DIALECT_APPLE_CLEARTEXT_MVP);
+
+    rfb_session_internal_receive_clipboard(&session, NULL, 1u);
+    rfb_session_internal_receive_clipboard(&session, NULL, 0u);
+    RFB_CHECK_EQ_UINT(fake.writes, 0u);
+
+    session.alloc = NULL;
+    rfb_session_internal_receive_clipboard(
+        &session, remote, sizeof remote - 1u);
+    session.dialect = RFB_SESSION_DIALECT_CLASSIC;
+    rfb_session_internal_receive_clipboard(
+        &session, remote, sizeof remote - 1u);
+    RFB_CHECK_EQ_UINT(fake.writes, 0u);
+
+    session.alloc = rfb_default_allocator();
+    session.dialect = RFB_SESSION_DIALECT_APPLE_CLEARTEXT_MVP;
+    fake.reject_write = true;
+    rfb_session_internal_receive_clipboard(
+        &session, remote, sizeof remote - 1u);
+    RFB_CHECK_EQ_UINT(fake.writes, 1u);
+    RFB_CHECK(!session.clipboard_loop.has_last);
+
+    clipboard_session_destroy(&session, &fake);
+}
+
+RFB_TEST(rfb_session_clipboard,
          poll__apple_utf8_emits_sanitized_client_cut_text_once)
 {
     rfb_session session;
@@ -224,6 +267,76 @@ RFB_TEST(rfb_session_clipboard,
                      RFB_OK);
     RFB_CHECK_EQ_UINT(fake_io_outbox_len(&fake.io), 0u);
 
+    clipboard_session_destroy(&session, &fake);
+}
+
+RFB_TEST(rfb_session_clipboard,
+         poll__deadline_empty_oversize_and_sanitized_empty_are_noops)
+{
+    rfb_session session;
+    clipboard_fake fake;
+    memset(&fake, 0, sizeof fake);
+    clipboard_session_init(&session, &fake,
+                           RFB_SESSION_DIALECT_APPLE_CLEARTEXT_MVP);
+    session.cfg.clipboard_max_bytes = 3u;
+    session.clipboard_next_poll_ms = 1000u;
+
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 999u),
+                     RFB_OK);
+    RFB_CHECK_EQ_UINT(fake.reads, 0u);
+
+    fake.override_read_result = true;
+    fake.read_result = 0;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1000u),
+                     RFB_OK);
+    fake.read_result = 4;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1250u),
+                     RFB_OK);
+
+    static const char dropped[] = { '\x01', '\x1b', '\x7f' };
+    fake.override_read_result = false;
+    fake.read_text = dropped;
+    fake.read_len = sizeof dropped;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1500u),
+                     RFB_OK);
+    RFB_CHECK_EQ_UINT(fake.reads, 3u);
+    RFB_CHECK_EQ_UINT(fake_io_outbox_len(&fake.io), 0u);
+
+    clipboard_session_destroy(&session, &fake);
+}
+
+RFB_TEST(rfb_session_clipboard,
+         poll__host_and_message_allocation_failures_are_reported)
+{
+    static const char first[] = "one";
+    static const char second[] = "two";
+    rfb_session session;
+    clipboard_fake fake;
+    memset(&fake, 0, sizeof fake);
+    fake.read_text = first;
+    fake.read_len = sizeof first - 1u;
+    clipboard_session_init(&session, &fake,
+                           RFB_SESSION_DIALECT_APPLE_CLEARTEXT_MVP);
+
+    session.alloc = NULL;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1000u),
+                     RFB_ERR_NOMEM);
+    RFB_CHECK_EQ_UINT(fake.reads, 0u);
+
+    session.alloc = rfb_default_allocator();
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1250u),
+                     RFB_OK);
+    const size_t first_wire_length = fake_io_outbox_len(&fake.io);
+    RFB_CHECK(first_wire_length > 0u);
+
+    fake.read_text = second;
+    fake.read_len = sizeof second - 1u;
+    session.alloc = NULL;
+    RFB_CHECK_EQ_INT(rfb_session_internal_poll_clipboard(&session, 1500u),
+                     RFB_ERR_NOMEM);
+    RFB_CHECK_EQ_UINT(fake_io_outbox_len(&fake.io), first_wire_length);
+
+    session.alloc = rfb_default_allocator();
     clipboard_session_destroy(&session, &fake);
 }
 

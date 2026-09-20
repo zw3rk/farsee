@@ -223,8 +223,8 @@
     "tests/unit/security_record_oracle__tests.c",
     "tests/unit/security_select__tests.c"
   ],
-  "test_inventory_count": 1033,
-  "test_inventory_sha256": "b6a279acd47309043226f3fc898b54fe43921d05d3366915d0d2f5c0fbcced87",
+  "test_inventory_count": 1036,
+  "test_inventory_sha256": "aa98b38d26c6636802de9bcf955fabeb92664d042b214f3ca8c266abdd6ea1aa",
   "protected_semantics_sha256": {
     "include/farsee/apple_auth.h": "3b7bd88d24d99aac674091160ba6df78f4feeedf8cc7360519167d0d557161a7",
     "include/farsee/apple_crypto.h": "c0278404126171a91de799d4fef9ebb5ba1f98ae2455f3f89b07b4e114ceed07",
@@ -389,7 +389,7 @@
     "tests/unit/rfb_prompt_signal__tests.c": "f9e79dd921691d62c8303c9f1f4f9bb9f78587a9b3a6f37dcb4fcee8260d269a",
     "tests/unit/rfb_server_engine__tests.c": "73673683904f5cf32c3090a88904075c44780d01327f1031d3c07cae324d302a",
     "tests/unit/rfb_session__tests.c": "9396b6d23ff71ab492073fdf360ba74c97a75a89ebf872a6efa5ea1dd1e38949",
-    "tests/unit/rfb_session_clipboard__tests.c": "b83cb4bb3a1e859070281b647a8f21dd20c6236f81c4d5cf1e6c384773b3d524",
+    "tests/unit/rfb_session_clipboard__tests.c": "214fee0198ca20d5780bd215ccc9a4bff3dacac7bfcf8accc7be74f040d97b84",
     "tests/unit/rfb_session_dialect__tests.c": "fcb0eb73480aaf1ed70ae80d730ad8ea1f21e57cf1d97577310b834eec1537d9",
     "tests/unit/rfb_session_frame_coverage__tests.c": "720de9e5c5fae9c8e345346c8189218b639279b08e27d37f1c80fa15b9055674",
     "tests/unit/rfb_session_fresh_rekey__tests.c": "3985dd5c6d8653b0de35de570cddac0f314e0b13cf1950341ee2d904dedd4df9",
