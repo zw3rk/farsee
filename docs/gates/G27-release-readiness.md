@@ -45,3 +45,24 @@ For each row, record `PASS`, `FAIL`, or `NOT RUN`, the candidate commit, the
 endpoint class, and a short sanitized observation. `NOT RUN` does not satisfy
 the gate. Keep generated RDP records under the build directory until a human
 has reviewed them for publication.
+
+### 2026-09-20 matrix progress
+
+The signed Apple recheck used exact candidate
+`004c45ac770bcc26947a6c92eb3fe55128b6e362` against the authorized macOS
+endpoint.
+
+| Row | Result | Sanitized observation |
+|-----|--------|-----------------------|
+| Candidate identity and signature | PASS | Embedded revision, binary digest, and approved Developer ID identity matched. |
+| Type 36 and shared-desktop attach | PASS | Protected records became active. |
+| Visible framebuffer | PASS | A complete 3840x2160 RGBA frame showed the expected macOS login UI. |
+| Apple `0x0450` receive and composition | NOT RUN | The client requested `0x0450`, but the server sent no observed `0x0450` rectangle. |
+| Pointer, scroll, and keyboard fidelity | NOT RUN | No safe visual input matrix was performed. |
+| Clipboard in both directions | NOT RUN | The session used clipboard-off; no Aqua pasteboard automation seam was available. |
+| Terminal resize and peer disconnect | NOT RUN | These rows were not exercised in this session. |
+| Leader-key disconnect | PASS | The bounded leader command stopped the session. |
+| Terminal modes and control sequences | PASS | `stty` and the expected mouse, keyboard, and cursor controls were restored. |
+| Standard-stream flags | PASS | `O_NONBLOCK` was clear after exit. Darwin's added `FWASWRITTEN` bit is kernel bookkeeping, not a user-settable status flag. |
+
+All `NOT RUN` rows remain release blockers.

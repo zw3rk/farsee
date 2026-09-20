@@ -163,12 +163,15 @@ The post-history-cleanup source candidate produced the following fresh results:
   not checked. Controlled certificate replacement, peer disconnect, and visual
   input and fidelity checks remain open.
 - On the authorized macOS endpoint, a Developer ID-signed post-cleanup
-  candidate forced type 36 and passed the bounded protected-record gate. The
-  earlier runner did not emit a digest, embedded revision, or certificate
-  fingerprint, so this is protocol evidence rather than exact-candidate release
-  evidence. The null-presenter, view-only run does not establish framebuffer,
-  cursor, or input acceptance. Type-36 framebuffer and input acceptance, and
-  visible `0x0450` cursor composition, remain open.
+  candidate at revision `004c45ac770bcc26947a6c92eb3fe55128b6e362`
+  passed the identity-bound signature check, forced type 36, entered protected
+  records, and displayed a complete 3840x2160 RGBA frame. The client requested
+  `0x0450`, but the server did not send that encoding during this test run, so
+  live cursor composition remains open. Visual input and clipboard
+  content checks were not run. The exact-candidate recheck confirmed that
+  revision `8de3cb6` restores `O_NONBLOCK` for the live PTY topology. Darwin's
+  kernel added its private `FWASWRITTEN` bookkeeping bit after terminal output;
+  that bit is not an inherited nonblocking mode or a user-settable status flag.
 
 The signing identity is approved. Extended live interoperability, manual
 acceptance, and independent release approval remain pending. A Linux release
@@ -189,9 +192,10 @@ the ADR-0013 repository-owner governance decision and any required counsel
 review. See `docs/provenance.md`.
 
 Basic authorized macOS interoperability passed under G26. Type-33 covers a
-rendered framebuffer and basic input. The current forced type-36 bounded gate
-covers authentication and protected-record activation, but not framebuffer or
-input acceptance. Extended Apple, terminal, and RDP matrices remain partial.
+rendered framebuffer and basic input. An exact signed type-36 candidate covers
+authentication, protected-record activation, and framebuffer delivery. Live
+`0x0450`, extended Apple input and clipboard checks, and the RDP matrix remain
+partial.
 G26 completion does not clear the separate provenance, packaging, dependency,
 documentation, or final acceptance gates.
 

@@ -75,6 +75,39 @@ The current runner fails closed unless the selected binary matches the expected
 version and revision and the approved Developer ID certificate. Each frozen
 release candidate must pass that identity-bound run.
 
+## 2026-09-20 identity-bound framebuffer pass
+
+The Developer ID-signed candidate at revision
+`175bc6baf5037019654787de273220d1667cd45a` passed the exact identity check,
+forced type 36, attached to the shared desktop, entered protected records, and
+delivered a complete 3840x2160 RGBA frame. The visible output matched the
+authorized macOS login screen.
+
+The candidate requested ZRLE, Raw, and `0x0450`. A debugger breakpoint on the
+private cursor decoder had no hits after pointer movement and full-frame
+delivery. This proves that the request was sent, but it does not prove live
+decode or composition because the server did not send a `0x0450` rectangle in
+this test run. Visual input, clipboard content, and cursor fidelity
+remain open.
+
+The bounded leader-key exit restored terminal modes and emitted the expected
+mouse, keyboard, and cursor restoration controls. Kitty output backpressure
+caused the presenter to fail, and a shared PTY open-file description retained
+`O_NONBLOCK`. Revision `8de3cb6` adds a regression and fixes the aliased-stream
+restoration order. The fixed path needs an exact-candidate live recheck.
+
+The exact recheck at revision
+`004c45ac770bcc26947a6c92eb3fe55128b6e362` passed the signed identity gate,
+type-36 protected-record path, shared-desktop attach, and visible framebuffer
+check again. The client requested `0x0450`; the decoder breakpoint again had no
+hit because the server sent no observed private-cursor rectangle.
+
+The recheck also passed standard-stream restoration. `O_NONBLOCK` was clear on
+all standard streams after exit. Darwin added its kernel-private
+`FWASWRITTEN` bit to the written PTY descriptors; this bit is kernel bookkeeping,
+not a user-settable status flag. The earlier full-value `F_GETFL` comparison
+therefore produced a false failure.
+
 ## Verification
 
 Machine checks live in the test suite and `make ci`. Gate status is authoritative in
