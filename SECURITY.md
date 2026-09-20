@@ -8,6 +8,19 @@ Security type 2 proves password knowledge; it does **not** encrypt the
 session. Use only on a trusted LAN, SSH tunnel, or VPN. The client never
 claims encrypted transport.
 
+## Apple security types
+
+Prefer Apple security type 33. It checks and pins the server SPKI with TOFU
+before it sends the encrypted username. Verify a new fingerprint through a
+separate trusted channel.
+
+Apple security type 36 has no SPKI or TOFU host pin. Its identity frame sends
+the username in cleartext before the SRP exchange. The password is not sent;
+the client publishes record keys only after it verifies the server's SRP M2
+proof. Use `--apple-security 36` only as an explicit compatibility choice. The
+default `auto` policy prefers type 33 and can use type 36 only as a fallback
+when the server does not offer type 33.
+
 ## Passwords
 
 - Never on argv or in URL userinfo (production rejects URL passwords).

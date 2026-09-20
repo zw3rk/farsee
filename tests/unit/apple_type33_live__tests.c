@@ -4,11 +4,18 @@
 // complete RSA1/SRP exchange. They do not establish hardware interoperability.
 
 #include "rfb_test.h"
+#include "fake_io.h"
+#include "farsee/apple_postauth.h"
 #include "farsee/apple_record.h"
 #include "farsee/apple_srp.h"
+#include "farsee/apple_type33_connect.h"
 #include "farsee/apple_type33_live.h"
 #include "farsee/apple_type36_live.h"
+#include "farsee/buffer.h"
 #include "farsee/error.h"
+#include "farsee/limits.h"
+#include "farsee/pixel_format.h"
+#include "rfb/apple_type33_connect_internal.h"
 #include "rfb/apple_type33_live_internal.h"
 
 #include <openssl/bn.h>
@@ -612,6 +619,74 @@ static rfb_error live_authenticate_type36(
         rfb_default_allocator(), &ops);
 }
 
+static rfb_error live_connect_authenticate_type36(
+    void *ctx, uint8_t selected_type, const apple_type33_io *io,
+    const uint8_t *username, size_t username_len,
+    const uint8_t *password, size_t password_len,
+    uint8_t wrap_key_out[16], apple_type33_kdf_material *kdf_out,
+    const char *host, uint16_t port, const char *known_hosts_path,
+    bool accept_new_host, rfb_allocator *allocator)
+{
+    (void)host;
+    (void)port;
+    (void)known_hosts_path;
+    (void)accept_new_host;
+    if (selected_type != 36u) {
+        return RFB_ERR_INTERNAL;
+    }
+    apple_type33_live_ops ops = {ctx, live_random};
+    return apple_type36_authenticate_ex_with_allocator_and_ops(
+        io, username, username_len, password, password_len, wrap_key_out,
+        kdf_out, allocator, &ops);
+}
+
+static bool live_connect_random(void *ctx, uint8_t *out, size_t len)
+{
+    return live_random(ctx, out, len);
+}
+
+typedef struct live_connect_setup {
+    size_t calls;
+    char name[16];
+} live_connect_setup;
+
+static rfb_error live_connect_setup_after_server_init(
+    void *ctx, const rfb_server_init *si)
+{
+    live_connect_setup *setup = (live_connect_setup *)ctx;
+    setup->calls++;
+    if (si->name != NULL) {
+        (void)snprintf(setup->name, sizeof setup->name, "%s", si->name);
+    }
+    return RFB_OK;
+}
+
+static bool live_append_server_init(live_fixture *f)
+{
+    static const char name[] = "desk";
+    uint8_t message[24u + sizeof name - 1u];
+    const rfb_pixel_format pf = rfb_pixel_format_canonical_request();
+    memset(message, 0, sizeof message);
+    message[1] = 4u;
+    message[3] = 3u;
+    message[4] = pf.bits_per_pixel;
+    message[5] = pf.depth;
+    message[6] = pf.big_endian;
+    message[7] = pf.true_color;
+    message[8] = (uint8_t)(pf.red_max >> 8u);
+    message[9] = (uint8_t)pf.red_max;
+    message[10] = (uint8_t)(pf.green_max >> 8u);
+    message[11] = (uint8_t)pf.green_max;
+    message[12] = (uint8_t)(pf.blue_max >> 8u);
+    message[13] = (uint8_t)pf.blue_max;
+    message[14] = pf.red_shift;
+    message[15] = pf.green_shift;
+    message[16] = pf.blue_shift;
+    message[23] = (uint8_t)(sizeof name - 1u);
+    memcpy(message + 24u, name, sizeof name - 1u);
+    return live_append(f, message, sizeof message);
+}
+
 static bool live_is_zero(const void *data, size_t len)
 {
     const uint8_t *bytes = (const uint8_t *)data;
@@ -779,4 +854,111 @@ RFB_TEST(apple_type33_live,
     RFB_CHECK(live_is_zero(wrap, sizeof wrap));
     RFB_CHECK(live_is_zero(&kdf, sizeof kdf));
     apple_srp_session_destroy(&f.expected_session);
+}
+
+RFB_TEST(apple_type33_live,
+         type36_bad_m2__keeps_outputs_clear)
+{
+    live_fixture f;
+    RFB_CHECK(live_fixture_prepare_type36(&f, false, true));
+    uint8_t wrap[16];
+    apple_type33_kdf_material kdf;
+    memset(wrap, 0xcc, sizeof wrap);
+    memset(&kdf, 0xcc, sizeof kdf);
+
+    RFB_CHECK_EQ_INT(live_authenticate_type36(&f, wrap, &kdf),
+                     RFB_ERR_AUTH);
+    RFB_CHECK_EQ_UINT(f.random_calls, 2u);
+    RFB_CHECK_EQ_UINT(f.send_count, 2u);
+    RFB_CHECK(live_is_zero(wrap, sizeof wrap));
+    RFB_CHECK(live_is_zero(&kdf, sizeof kdf));
+    apple_srp_session_destroy(&f.expected_session);
+}
+
+RFB_TEST(apple_type33_connect,
+         type36_real_crypto_exchange__publishes_verified_keys)
+{
+    static const uint8_t security[] = {1u, 36u};
+    static const uint8_t user[] = "admin";
+    static const uint8_t pass[] = "secret";
+    live_fixture f;
+    RFB_CHECK(live_fixture_prepare_type36(&f, false, false));
+    RFB_CHECK(live_append_server_init(&f));
+
+    fake_io wire;
+    fake_io_init(&wire, rfb_default_allocator());
+    rfb_io_adapter adapter = fake_io_adapter_make(&wire);
+    rfb_buffer in;
+    rfb_buffer out;
+    rfb_buffer_init(&in, rfb_default_allocator(),
+                    RFB_LIMIT_PRESENTATION_BYTES);
+    rfb_buffer_init(&out, rfb_default_allocator(),
+                    RFB_LIMIT_PRESENTATION_BYTES);
+    RFB_CHECK_EQ_INT(rfb_buffer_append(&in, security, sizeof security),
+                     RFB_OK);
+    RFB_CHECK_EQ_INT(rfb_buffer_append(&in, f.input, f.input_len), RFB_OK);
+
+    rfb_error last_error = RFB_OK;
+    rfb_io_pump pump;
+    memset(&pump, 0, sizeof pump);
+    pump.alloc = rfb_default_allocator();
+    pump.io = &adapter;
+    pump.fd = -1;
+    pump.in = &in;
+    pump.out = &out;
+    pump.last_error = &last_error;
+
+    rfb_session_config cfg;
+    memset(&cfg, 0, sizeof cfg);
+    cfg.auth_mode = FARSEE_AUTH_MODE_APPLE;
+    cfg.username = user;
+    cfg.username_len = sizeof user - 1u;
+    cfg.password = pass;
+    cfg.password_len = sizeof pass - 1u;
+    cfg.shared = true;
+    cfg.apple_attach = APPLE_ATTACH_LOGIN;
+    cfg.apple_prefer_type_36 = true;
+
+    live_connect_setup setup;
+    memset(&setup, 0, sizeof setup);
+    apple_type33_connect_hooks hooks;
+    memset(&hooks, 0, sizeof hooks);
+    hooks.ctx = &setup;
+    hooks.setup_after_server_init = live_connect_setup_after_server_init;
+
+    apple_type33_connect_ops ops = {
+        &f,
+        live_connect_authenticate_type36,
+        live_connect_random,
+    };
+    uint8_t wrap[16] = {0};
+    uint8_t sk32[32] = {0};
+    bool has_wrap = false;
+    rfb_session_dialect dialect = RFB_SESSION_DIALECT_CLASSIC;
+    RFB_CHECK_EQ_INT(
+        apple_type33_connect_with_ops(&pump, &cfg, &hooks, wrap,
+                                      &has_wrap, &dialect, sk32, &ops),
+        RFB_OK);
+
+    RFB_CHECK(has_wrap);
+    RFB_CHECK_EQ_INT(dialect, RFB_SESSION_DIALECT_APPLE_CLEARTEXT_MVP);
+    RFB_CHECK_MEM_EQ(wrap, f.expected_sk32, sizeof wrap);
+    RFB_CHECK_MEM_EQ(sk32, f.expected_sk32, sizeof sk32);
+    RFB_CHECK_EQ_UINT(f.random_calls, 2u);
+    RFB_CHECK_EQ_UINT(setup.calls, 1u);
+    RFB_CHECK(strcmp(setup.name, "desk") == 0);
+    RFB_CHECK_EQ_UINT(rfb_buffer_length(&in), 0u);
+    RFB_CHECK_EQ_UINT(rfb_buffer_length(&out), 0u);
+    const uint8_t *sent = fake_io_outbox_data(&wire);
+    const size_t sent_len = fake_io_outbox_len(&wire);
+    RFB_CHECK(sent_len > 13u);
+    RFB_CHECK_MEM_EQ(sent, "RFB 003.889\n", 12u);
+    RFB_CHECK_EQ_UINT(sent[12], 36u);
+    RFB_CHECK_EQ_UINT(sent[sent_len - 1u],
+                      APPLE_POSTAUTH_CLIENT_INIT_LIVE_SHARED);
+
+    apple_srp_session_destroy(&f.expected_session);
+    rfb_buffer_destroy(&in);
+    rfb_buffer_destroy(&out);
+    fake_io_destroy(&wire);
 }

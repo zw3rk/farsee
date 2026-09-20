@@ -223,8 +223,8 @@
     "tests/unit/security_record_oracle__tests.c",
     "tests/unit/security_select__tests.c"
   ],
-  "test_inventory_count": 1038,
-  "test_inventory_sha256": "1c66d5907e3ea44bc91b548deaa3010fb78c17902dff5aa5f35f991bb1566112",
+  "test_inventory_count": 1040,
+  "test_inventory_sha256": "371403db701416979138592053451e9e9c4cd269475fb66db0891386120a6627",
   "protected_semantics_sha256": {
     "include/farsee/apple_auth.h": "3b7bd88d24d99aac674091160ba6df78f4feeedf8cc7360519167d0d557161a7",
     "include/farsee/apple_crypto.h": "c0278404126171a91de799d4fef9ebb5ba1f98ae2455f3f89b07b4e114ceed07",
@@ -361,7 +361,7 @@
     "tests/unit/apple_srp__tests.c": "1687ff7fce82c416e9a725d67c16d50a5777e624ef1929afe6ad4be647a2fc1d",
     "tests/unit/apple_type33__tests.c": "71c35903570a38c05a5199db300db5b7a6145533b56bff3eef92b6977e93edbc",
     "tests/unit/apple_type33_connect__tests.c": "e9e24562df5d180ce9dde89d8acf65d5893323e570d55ba2530b319bc9f5c8d7",
-    "tests/unit/apple_type33_live__tests.c": "0062e278a882e2fe8928db6f7bbfcac2ee721e52e07a2030e137976bceb8931c",
+    "tests/unit/apple_type33_live__tests.c": "406b97e69fa0abde34f05e77c4ad95c4a452a375b3256b9b38477d514baa9294",
     "tests/unit/apple_type36_connect__tests.c": "715370bf9397a1a84e5e5cb115a2effc3c7355833b3ef3e82c78b57c367755de",
     "tests/unit/apple_viewer_info_ack__tests.c": "0cdf5b68db4de00099b0e9e5e384679d88e4c30f0a8de1fe89b65f6a81022f50",
     "tests/unit/apple_wire_decode__tests.c": "4c4c5f6987dc7d32110d0a3aedf24bed59af763fa03b3558392e11ba0bd05208",

@@ -65,11 +65,16 @@ the product source or public-header sets.
 |------|--------|
 | `rdp://` with Kitty | Live through `rdp_live` |
 | Classic `vnc://` | Live through `rfb_live` |
-| Apple security type 33 | Live RSA1, SRP, and post-auth record path |
-| Apple security type 36 | Live identity, SRP proof, server proof, wrap-key, and post-auth paths |
+| Apple security type 33 | Preferred live RSA1, SPKI/TOFU, SRP, and post-auth record path |
+| Apple security type 36 | Compatibility path: cleartext username, no SPKI/TOFU pin, SRP M2 verification, wrap-key, and post-auth records |
 | Apple `0x03f3` | Type-0 command and image planes decode and paint; unsupported forms fail closed |
-| Apple `0x0450` | Profile-1000 alpha cursor decoded and composited into the copied presentation frame |
+| Apple `0x0450` | Profile-1000 alpha cursor decoded and composited into the copied presentation frame; a non-canonical ServerInit pixel format is rejected when this encoding is decoded |
 | Status band | Scale, RTT, and receive rate |
+
+The default Apple security policy prefers type 33. Type 36 is available as an
+automatic fallback or through explicit `--apple-security 36` selection. It
+does not provide the type-33 host-pin check, so operators must treat endpoint
+selection and the cleartext username as part of the compatibility risk.
 
 ## Build and verification
 

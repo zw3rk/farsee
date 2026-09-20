@@ -57,7 +57,7 @@ endpoint.
 | Candidate identity and signature | PASS | Embedded revision, binary digest, and approved Developer ID identity matched. |
 | Type 36 and shared-desktop attach | PASS | Protected records became active. |
 | Visible framebuffer | PASS | A complete 3840x2160 RGBA frame showed the expected macOS login UI. |
-| Apple `0x0450` receive and composition | NOT RUN | The client requested `0x0450`, but the server sent no observed `0x0450` rectangle. |
+| Apple `0x0450` receive and composition | NOT RUN | The client requested `0x0450`, but the server sent no observed `0x0450` rectangle. The decoder requires the canonical pixel format and rejects this encoding after a non-canonical ServerInit. |
 | Pointer, scroll, and keyboard fidelity | NOT RUN | No safe visual input matrix was performed. |
 | Clipboard in both directions | NOT RUN | The session used clipboard-off; no Aqua pasteboard automation seam was available. |
 | Terminal resize and peer disconnect | NOT RUN | These rows were not exercised in this session. |
