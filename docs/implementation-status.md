@@ -190,6 +190,24 @@ The post-history-cleanup source candidate produced the following fresh results:
   rejected the operator-supplied value. The original guest image remains
   unchanged and passes `qemu-img check`; current-head Windows fidelity rows
   remain open until authorized guest access is restored.
+- Authorized access was then recovered on a disposable clone. The exact
+  Developer ID-signed candidate
+  `b89d4fdbaf023e198101a89b506c0c0b960ad085` completed the Windows 11 ARM
+  matrix: correct and incorrect credentials, visible 1280x800 output,
+  1024x768 output, keyboard, pointer, wheel, clipboard in both directions,
+  terminal resize, leader exit, all three shutdown signals, clean server
+  sign-out, first-use pinning, and rejection after an actual certificate
+  rotation. The unchanged pin failed closed with exit 4, while an ignore-policy
+  control delivered 189 frames with the new certificate. The original guest
+  stayed stopped and unchanged and again passed `qemu-img check`. The clone and
+  all temporary credentials, captures, logs, recovery files, and disk copies
+  were deleted. Independent xrdp coverage remains unavailable and is not
+  claimed.
+- The same signed candidate passed the identity-bound macOS acceptance target,
+  forced type 36, attached to the shared desktop, and activated protected
+  records. Extended Apple acceptance remains blocked by current endpoint
+  behavior recorded above: black full-size updates, no observed `0x0450`, and
+  no working visual input or clipboard transfer in the tested sessions.
 
 The signing identity is approved. Extended live interoperability, manual
 acceptance, and independent release approval remain pending. A Linux release
@@ -212,8 +230,8 @@ review. See `docs/provenance.md`.
 Basic authorized macOS interoperability passed under G26. Type-33 covers a
 rendered framebuffer and basic input. An exact signed type-36 candidate covers
 authentication, protected-record activation, and framebuffer delivery. Live
-`0x0450`, extended Apple input and clipboard checks, and the RDP matrix remain
-partial.
+`0x0450` plus extended Apple input and clipboard checks remain partial. The
+Windows 11 ARM RDP matrix passes; independent xrdp coverage remains unavailable.
 G26 completion does not clear the separate provenance, packaging, dependency,
 documentation, or final acceptance gates.
 

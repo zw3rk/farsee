@@ -1,6 +1,6 @@
 # R6 — RDP interoperability
 
-- **Status:** machine coverage passes; the manual interoperability matrix remains partial
+- **Status:** machine coverage and the Windows 11 ARM matrix pass; independent xrdp coverage remains open
 - **Evidence:** this card, the current source tree, and tests under `tests/`
 
 ## Scope
@@ -84,6 +84,38 @@ without errors. The image was not modified. Current-head Windows framebuffer,
 input, clipboard, resize, certificate-replacement, peer-disconnect, and
 terminal-restoration acceptance remain uncredited until authorized guest
 access is restored.
+
+## 2026-09-20 exact signed Windows matrix completion
+
+Authorized access was recovered only on a disposable clone. The original
+Windows 11 ARM guest remained stopped and unchanged. The exact signed candidate
+`b89d4fdbaf023e198101a89b506c0c0b960ad085` completed the Windows matrix:
+
+- correct credentials delivered 172 frames at 1280x800; an incorrect password
+  failed with exit 4 and `ERRCONNECT_LOGON_FAILURE`;
+- a 1024x768 run delivered 148 frames, and separate clipboard-on and
+  clipboard-off runs delivered 190 and 104 frames;
+- a captured 1280x800 framebuffer showed a complete Windows desktop;
+- visible keyboard text remained ordered, pointer motion and click reached the
+  intended controls, and wheel input scrolled a 34-line document from line 12
+  to line 1;
+- clipboard text passed in both directions, and the host pasteboard was
+  restored after each check;
+- leader quit, `SIGINT`, `SIGTERM`, and `SIGHUP` all stopped cleanly and emitted
+  the expected terminal cleanup controls;
+- the live PTY resized from 80x24 to 120x50 and then 100x40 while presentation
+  continued;
+- server sign-out ended cleanly with `ERRINFO_LOGOFF_BY_USER` after 153 frames;
+- first-use pinning created a mode-0600 pin and delivered 203 frames. An actual
+  guest certificate rotation and reboot made that unchanged pin fail closed
+  with exit 4. The ignore-policy control delivered 189 frames with the new
+  certificate.
+
+The task-owned clone and all temporary credentials, recovery files, captures,
+logs, and disk copies were deleted after the matrix. The original guest was
+still stopped, was not modified by this work, and passed `qemu-img check` with
+no errors. This completes the Windows 11 ARM endpoint matrix for the exact
+candidate. Independent xrdp coverage remains unavailable and is not claimed.
 
 ## `--cert pin` escalation packet (resolved)
 

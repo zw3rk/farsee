@@ -108,6 +108,22 @@ all standard streams after exit. Darwin added its kernel-private
 not a user-settable status flag. The earlier full-value `F_GETFL` comparison
 therefore produced a false failure.
 
+## 2026-09-20 signed current-candidate bounded recheck
+
+The exact Developer ID-signed candidate
+`b89d4fdbaf023e198101a89b506c0c0b960ad085` had SHA-256
+`88432f1f33c34d16343f6733abba1097d2b70b8d56808fda8d5d864c3e280f64`.
+The official identity-bound acceptance target forced type 36, attached to the
+shared desktop, activated protected records, and reported `RESULT: PASS`.
+
+No production source changed between the earlier visible-frame candidate and
+the later black-frame candidate. The current endpoint behavior therefore
+remains an external acceptance blocker rather than evidence of a newly isolated
+source regression: tested protected-record, cleartext, and private sessions
+returned only black full-size updates, no `0x0450` rectangle was observed, and
+visual input and clipboard transfer could not be established. These extended
+rows remain open.
+
 ## Verification
 
 Machine checks live in the test suite and `make ci`. Gate status is authoritative in
