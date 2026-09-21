@@ -205,9 +205,17 @@ The post-history-cleanup source candidate produced the following fresh results:
   claimed.
 - The same signed candidate passed the identity-bound macOS acceptance target,
   forced type 36, attached to the shared desktop, and activated protected
-  records. Extended Apple acceptance remains blocked by current endpoint
-  behavior recorded above: black full-size updates, no observed `0x0450`, and
-  no working visual input or clipboard transfer in the tested sessions.
+  records. Its extended Apple matrix recorded black full-size updates, no
+  observed `0x0450`, and no working visual input or clipboard transfer.
+- A 2026-09-21 live diagnostic against the same authorized endpoint corrected
+  the black-frame diagnosis. Cleartext and protected ZRLE/Raw modes decoded a
+  visible 3840x2160 framebuffer. Private `0x03f3` mode alone stayed black: the
+  DCT decoder rejected the observed `001` DC-reuse selector. The corrected
+  decoder preserved all three DC predictors, decoded the following AC payload,
+  and produced a non-black third protected frame with 32,399 of 32,400 sampled
+  pixels non-black. This diagnostic used a dirty development build, so an exact
+  signed-candidate recheck is still required. Live `0x0450`, input, and
+  clipboard acceptance remain open.
 
 The signing identity is approved. Extended live interoperability, manual
 acceptance, and independent release approval remain pending. A Linux release

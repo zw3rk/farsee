@@ -246,27 +246,30 @@ static bool mvs_decode_dct(mvs_img_state *s, int16_t coef[64], int16_t *cb,
         return false;
     }
     if (lead == 0u) {
-        uint32_t flag = 0u;
-        uint32_t sep = 0u;
-        if (!mvs_img_get(s, 1u, &flag) || !mvs_img_get(s, 1u, &sep) ||
-            sep != 0u) {
+        uint32_t dc_form = 0u;
+        if (!mvs_img_get(s, 2u, &dc_form)) {
             return false;
         }
-        // Form B (flag = 1) is the one-bit escape for the single most common
-        // chroma symbol pair, dCb == dCr == 0.
         int32_t d[3] = {0, 0, 0};   // dCb, dCr, dY in wire order
-        if (flag == 1u) {
-            if (!apple_mvs_mag_get(&s->br, &d[2]) ||
-                mvs_img_pos(s) > s->payload_bits) {
-                return false;
-            }
-        } else {
+        if (dc_form == 0u) {
+            // 000 carries all three DC deltas.
             for (size_t i = 0u; i < 3u; i++) {
                 if (!apple_mvs_mag_get(&s->br, &d[i]) ||
                     mvs_img_pos(s) > s->payload_bits) {
                     return false;
                 }
             }
+        } else if (dc_form == 1u) {
+            // 001 reuses all three predictors but still carries AC data.
+        } else if (dc_form == 2u) {
+            // 010 is the common zero-chroma form and carries only dY.
+            if (!apple_mvs_mag_get(&s->br, &d[2]) ||
+                mvs_img_pos(s) > s->payload_bits) {
+                return false;
+            }
+        } else {
+            // 011 has not appeared in a valid generated wire vector.
+            return false;
         }
         // dX = -(level(this tile) - level(previous DCT tile in scan order)).
         s->dc_level[0] -= d[2];

@@ -124,6 +124,25 @@ returned only black full-size updates, no `0x0450` rectangle was observed, and
 visual input and clipboard transfer could not be established. These extended
 rows remain open.
 
+## 2026-09-21 private-paint diagnosis and development recheck
+
+A contemporaneous non-Farsee connection showed a visible desktop, so the prior
+external-blocker conclusion was reopened. Framebuffer inspection isolated the
+failure to private `0x03f3` mode: cleartext and protected ZRLE/Raw modes decoded
+non-black 3840x2160 frames, while private mode remained black.
+
+The live high-quality MVS rectangle used DCT selector `001`, which carries no
+DC deltas, preserves all three predictors, and continues with AC coefficients.
+The decoder had treated the final selector bit as a mandatory zero separator
+and consumed the rectangle without damage. A regression now covers selector
+`001`; reserved selector `011` still fails closed. After the fix, the third
+private protected frame had 24,882,922 nonzero RGB bytes and 32,399 of 32,400
+sampled pixels were non-black.
+
+This was a dirty development-build diagnostic, not signed-candidate acceptance.
+An exact signed-candidate recheck and live `0x0450`, input, and clipboard rows
+remain open.
+
 ## Verification
 
 Machine checks live in the test suite and `make ci`. Gate status is authoritative in

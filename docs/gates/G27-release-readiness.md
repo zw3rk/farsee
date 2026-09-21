@@ -115,8 +115,14 @@ temporary recovery material were deleted.
 | Terminal resize and standard-stream restoration | PASS | The live PTY changed from 80x24 to 120x50 and then 100x40 while presentation continued. Exit restored terminal controls; prior exact-candidate flag inspection showed `O_NONBLOCK` clear. |
 | Peer disconnect | PASS | A server-initiated sign-out ended the session cleanly with `ERRINFO_LOGOFF_BY_USER` after 153 frames. A guest reboot also produced an admin-initiated peer end and restored the terminal. |
 
-The Windows manual matrix is complete for this candidate. The current Apple
-endpoint still prevents the extended Apple rows from passing: it returns only
-black full-size updates, has not emitted `0x0450`, and does not expose working
-visual input or clipboard behavior in the tested sessions. The automated
-identity-bound type-36 protected-record target does pass for this candidate.
+The Windows manual matrix is complete for this candidate. Its recorded Apple
+matrix remains incomplete: the signed run returned black full-size updates,
+did not emit `0x0450`, and did not establish visual input or clipboard
+behavior. The automated identity-bound type-36 protected-record target passed.
+
+A later 2026-09-21 development diagnostic showed that the endpoint and the
+protected ZRLE/Raw path delivered visible frames. It isolated private-mode
+black output to an `0x03f3` DCT selector defect and verified a non-black private
+frame after the repair. Because that diagnostic used a dirty development
+build, it does not replace the exact signed-candidate matrix. Live `0x0450`,
+input, and clipboard rows remain open.

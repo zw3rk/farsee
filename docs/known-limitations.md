@@ -18,8 +18,9 @@ transport.
 - The post-auth record suite is AES-128-CBC for setup52 type `0x044f`, method 1.
   Unsupported suites fail closed.
 - Apple `0x03f3` validates type-0 command planes and decodes supported image
-  planes for painting. Validated forms that the image decoder cannot paint
-  consume with no damage.
+  planes for painting. The DCT path accepts the observed full-DC, DC-reuse,
+  and luma-only selectors; reserved selectors and unmeasured forms consume
+  with no damage.
 - Apple `0x0450` decodes the supported profile-1000 alpha cursor and composites
   it into the presentation copy. Other profile values and non-canonical
   negotiated pixel formats fail closed.

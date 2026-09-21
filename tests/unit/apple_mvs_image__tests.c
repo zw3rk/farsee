@@ -664,6 +664,36 @@ RFB_TEST(apple_mvs_image, ac_ordinal_one_is_a_horizontal_basis_function)
     mvs_fb_close(&m);
 }
 
+// The live high-quality stream uses selector 001 when all three DC predictors
+// carry over but the tile still has AC coefficients. This is distinct from the
+// one-bit "nothing to send" record, which has no AC payload.
+RFB_TEST(apple_mvs_image, ac_dc_reuse_selector_paints_coefficients)
+{
+    uint8_t qt0[64], qt1[64];
+    mvs_test_tables(qt0, qt1);
+    mvs_body b;
+    mvs_body_begin(&b);
+    mvs_body_tiles(&b, 5u, 1u);
+    mvs_body_img(&b, "0 0 1");       // record, reuse Y/Cb/Cr predictors
+    mvs_body_img(&b, "10 000");      // WIDE level +2 at ordinal 1
+    mvs_body_img(&b, "0010");        // early-stop trailer
+    mvs_body_finish(&b, 15u, 25u);
+
+    mvs_fb m;
+    mvs_fb_open(&m, 8u, 8u);
+    rfb_rect_header rh = {.x = 0, .y = 0, .width = 8, .height = 8,
+                          .encoding = RFB_ENCODING_APPLE_MVS};
+    rfb_rect dmg;
+    RFB_CHECK_EQ_INT(mvs_paint(&m.fb, &rh, b.bytes, b.len, qt0, qt1, &dmg),
+                     RFB_OK);
+    for (uint32_t y = 0u; y < 8u; y++) {
+        for (uint32_t x = 0u; x < 8u; x++) {
+            mvs_check_px(&m.fb, x, y, k_ramp[x], k_ramp[x], k_ramp[x]);
+        }
+    }
+    mvs_fb_close(&m);
+}
+
 RFB_TEST(apple_mvs_image, ac_ordinal_two_is_a_vertical_basis_function)
 {
     uint8_t qt0[64], qt1[64];
@@ -867,14 +897,14 @@ RFB_TEST(apple_mvs_image, truncated_record_fails_closed)
     mvs_fb_close(&m);
 }
 
-RFB_TEST(apple_mvs_image, record_separator_bit_must_be_zero)
+RFB_TEST(apple_mvs_image, reserved_dc_selector_fails_closed)
 {
     uint8_t qt0[64], qt1[64];
     mvs_test_tables(qt0, qt1);
     mvs_body b;
     mvs_body_begin(&b);
     mvs_body_tiles(&b, 5u, 1u);
-    mvs_body_img(&b, "0 1 1");   // the third bit is fixed at '0'
+    mvs_body_img(&b, "0 1 1");   // selector 011 is reserved
     mvs_body_img(&b, "1110 0101 0010");
     mvs_body_finish(&b, 15u, 25u);
 
@@ -1191,7 +1221,7 @@ RFB_TEST(apple_mvs_image, product_seam_undecodable_plane_consumes_without_damage
     mvs_body b;
     mvs_body_begin(&b);
     mvs_body_tiles(&b, 5u, 1u);
-    mvs_body_img(&b, "0 1 1 1110 0101 0010");   // separator bit must be '0'
+    mvs_body_img(&b, "0 1 1 1110 0101 0010");   // reserved selector 011
     mvs_body_finish(&b, 15u, 25u);
 
     mvs_fb m;

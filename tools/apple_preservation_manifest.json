@@ -223,8 +223,8 @@
     "tests/unit/security_record_oracle__tests.c",
     "tests/unit/security_select__tests.c"
   ],
-  "test_inventory_count": 1040,
-  "test_inventory_sha256": "371403db701416979138592053451e9e9c4cd269475fb66db0891386120a6627",
+  "test_inventory_count": 1041,
+  "test_inventory_sha256": "978fc4f9a70a50e2aee1a37ef021090a578ee33b63588ad0e4e0ff1e53e9dc99",
   "protected_semantics_sha256": {
     "include/farsee/apple_auth.h": "3b7bd88d24d99aac674091160ba6df78f4feeedf8cc7360519167d0d557161a7",
     "include/farsee/apple_crypto.h": "c0278404126171a91de799d4fef9ebb5ba1f98ae2455f3f89b07b4e114ceed07",
@@ -291,7 +291,7 @@
     "src/rfb/apple_input.c": "fa4c528ef71d4a48eb37f9c959d9c01a76b55a1b5f820a3987fce0649d087941",
     "src/rfb/apple_mvs_bits.c": "641040422bd6392ed62f6bb884f852795e2b4bd20dfeac83c1d80b63b7307be6",
     "src/rfb/apple_mvs_dct.c": "001d094cb0a297ceed6bbe5796a61a03775b54892f339a80e96c01adebbef7d4",
-    "src/rfb/apple_mvs_image.c": "64acab3698ffb5a40bb6da1b7a96437375cd486e11fd699875ac77df2bfe53a0",
+    "src/rfb/apple_mvs_image.c": "8bdc7ed81666f51e3befb4d659f33c02f896e0d0d06038fa1f505b5e0302100d",
     "src/rfb/apple_mvs_mag.c": "501f571057515cc56e1306cdf93f22b0e196f97350dfcb3b7676f4a6c89f0b27",
     "src/rfb/apple_mvs_stream.c": "9872edf09ff6831899941e6d5f7ca249db152f55801bfad460e2168ca51f0c96",
     "src/rfb/apple_postauth.c": "c2a026d7bb177665a674c3b3e5501fa011cd97763221a24df4a7e3ca42bd623b",
@@ -349,7 +349,7 @@
     "tests/unit/apple_mvs_bit_writer_flush__tests.c": "f90a0595e5c330563c4fc3d312df2dff88a4b31c6d1c3bed21f9fff84214aff6",
     "tests/unit/apple_mvs_bits__tests.c": "6950f6c3964999ee6e5a35ca9b85134384ec99d533c6b395658495931c50d694",
     "tests/unit/apple_mvs_dct__tests.c": "6fde1a97a3eec025fc63416ce545087b87c41fbeb92c4815a05414cd9abdffa1",
-    "tests/unit/apple_mvs_image__tests.c": "28f5f3e898d44a5428d690b001e9f6b59e70be9e10f69688d1cdaa02a12b302d",
+    "tests/unit/apple_mvs_image__tests.c": "398e8356e60063c3406ce35b43ffa41cdba9e341a9c0cbe4c85cac951ab15949",
     "tests/unit/apple_mvs_mag__tests.c": "e13dc9cd45ca7403c3fcf4fa6072b20aa742c22c1141ddc0017c73a32690de12",
     "tests/unit/apple_mvs_stream__tests.c": "2356e43f1385cfe676794cf1717e3e895c02ec504dd4911c8940a5b67295b9e9",
     "tests/unit/apple_postauth__tests.c": "57cb380013c71e0c0133722b93758284c58fa117d6852ba880b0610de80c6aa2",
