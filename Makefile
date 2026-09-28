@@ -843,6 +843,10 @@ DEP_OBJS := $(LIB_OBJS) $(TEST_CAPTURE_DIAGNOSTIC_OBJS) \
 # ===========================================================================
 ## Test
 ## ---------------------------------------------------------------------------
+# GitHub Actions exports CI=true. Bound each test there so a wedged child
+# identifies its test instead of holding a runner until the job limit.
+CI_TEST_TIMEOUT_S ?= $(if $(CI),120,)
+
 test-tools: ## Run repository tool self-tests (Python + shell)
 	$(QUIET_RUN)PYTHONDONTWRITEBYTECODE=1 $(PYTHON) -m unittest discover -s $(TEST_DIR)/tools -p 'test_*.py'
 	@for t in $(TEST_DIR)/tools/test_*.sh; do \
@@ -884,6 +888,7 @@ test-unit: $(TEST_RUNNER) ## Run unit/component tests; use TEST_FILTER=name to f
 	@# product code is still checked by ASan for UAF/OOB. Override with
 	@# ASAN_OPTIONS=detect_leaks=1 for leak hunts.
 	$(QUIET_RUN)env ASAN_OPTIONS="$${ASAN_OPTIONS:-detect_leaks=0}" \
+	  FARSEE_TEST_TIMEOUT_S="$${FARSEE_TEST_TIMEOUT_S:-$(CI_TEST_TIMEOUT_S)}" \
 	  $(TEST_RUNNER) $(TEST_ARGS)
 
 test: build test-tools cli-smoke test-unit ## Build and run the test suite
