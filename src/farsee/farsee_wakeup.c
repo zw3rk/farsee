@@ -7,6 +7,7 @@
 // drains all pending bytes. The implementation uses no mutex.
 
 #include "farsee/farsee_wakeup.h"
+#include "farsee/farsee_wakeup_internal.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -19,6 +20,13 @@ struct farsee_wakeup {
     int read_fd;
     int write_fd;
 };
+
+static ssize_t wakeup_write_posix(void *context, int fd,
+                                  const void *buffer, size_t length)
+{
+    (void)context;
+    return write(fd, buffer, length);
+}
 
 static bool set_nonblock(int fd)
 {
@@ -83,7 +91,14 @@ farsee_reactor_token farsee_wakeup_register(farsee_wakeup *w,
 
 bool farsee_wakeup_signal(farsee_wakeup *w)
 {
-    if (w == NULL || w->write_fd < 0) {
+    return farsee_wakeup_signal_with_writer(w, wakeup_write_posix, NULL);
+}
+
+bool farsee_wakeup_signal_with_writer(farsee_wakeup *w,
+                                      farsee_wakeup_write_fn write_fn,
+                                      void *context)
+{
+    if (w == NULL || w->write_fd < 0 || write_fn == NULL) {
         return false;
     }
     // Retry EINTR. EAGAIN means the nonblocking pipe already contains a
@@ -91,7 +106,7 @@ bool farsee_wakeup_signal(farsee_wakeup *w)
     unsigned char byte = 1;
     ssize_t n;
     do {
-        n = write(w->write_fd, &byte, 1);
+        n = write_fn(context, w->write_fd, &byte, 1);
     } while (n < 0 && errno == EINTR);
     if (n == 1) {
         return true;

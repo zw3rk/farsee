@@ -5,21 +5,20 @@
 //
 // The EPIPE child exercises that contract deterministically: fds are
 // allocated lowest-available, so a probe reveals the wakeup's read end,
-// which the child closes behind the primitive's back. The itimer child
-// additionally drives interrupted writes (1us repeating SIGALRM, handler
-// without SA_RESTART) to pin the retry-on-EINTR behaviour on platforms
-// where nonblocking writes do surface it. The full-pipe case pins the
-// EAGAIN coalescing contract.
+// which the child closes behind the primitive's back. A private writer seam
+// deterministically pins retry-on-EINTR behaviour. The full-pipe case pins
+// the EAGAIN coalescing contract.
 
 #include "farsee/farsee_wakeup.h"
+#include "farsee/farsee_wakeup_internal.h"
 #include "tests/test_framework/rfb_test.h"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/wait.h>
-#include <sys/time.h>
 #include <unistd.h>
 
 // Returns the child exit code: 0 = expected behaviour,
@@ -71,68 +70,54 @@ RFB_TEST(wakeup_signal, wakeup_signal__failed_write__reports_failure)
 
 // --- retry on EINTR (interrupted writes) -------------------------------------
 
-static volatile sig_atomic_t g_alarm_runs = 0;
+typedef struct wakeup_write_script {
+    int calls;
+    int error_after_eintr;
+} wakeup_write_script;
 
-static void on_sigalrm(int sig)
+static ssize_t wakeup_eintr_writer(void *context, int fd,
+                                   const void *buffer, size_t length)
 {
-    (void)sig;
-    g_alarm_runs = 0x5a;
+    wakeup_write_script *script = (wakeup_write_script *)context;
+    ++script->calls;
+    if (script->calls == 1) {
+        errno = EINTR;
+        return -1;
+    }
+    if (script->error_after_eintr != 0) {
+        errno = script->error_after_eintr;
+        return -1;
+    }
+    return write(fd, buffer, length);
 }
 
-// Returns the child exit code: 0 = every signal() report verified,
-// 1 = a wakeup was reported armed but no byte landed,
-// 2 = harness setup failure, 3 = no signal ever delivered (vacuous).
-static int wakeup_eintr_child(void)
+RFB_TEST(wakeup_signal, wakeup_signal__eintr_then_write__retries_and_lands_byte)
 {
-    struct sigaction sa;
-    sa.sa_handler = on_sigalrm;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;  // no SA_RESTART: interrupted writes return EINTR
-    if (sigaction(SIGALRM, &sa, NULL) != 0) {
-        return 2;
-    }
-    struct itimerval it;
-    it.it_interval.tv_sec = 0;
-    it.it_interval.tv_usec = 1;  // fire as fast as the kernel allows
-    it.it_value = it.it_interval;
-    if (setitimer(ITIMER_REAL, &it, NULL) != 0) {
-        return 2;
-    }
-
     farsee_wakeup *w = farsee_wakeup_create();
-    if (w == NULL) {
-        return 2;
-    }
-    for (int i = 0; i < 20000; ++i) {
-        (void)farsee_wakeup_consume(w);  // drain: EAGAIN cannot occur
-        if (!farsee_wakeup_signal(w)) {
-            farsee_wakeup_destroy(&w);
-            return 1;  // interrupted write must retry, not give up
-        }
-        if (!farsee_wakeup_consume(w)) {
-            farsee_wakeup_destroy(&w);
-            return 1;  // reported armed, but no byte landed
-        }
-    }
+    RFB_CHECK(w != NULL);
+    wakeup_write_script script = {0};
+
+    RFB_CHECK(farsee_wakeup_signal_with_writer(
+        w, wakeup_eintr_writer, &script));
+    RFB_CHECK_EQ_INT(script.calls, 2);
+    RFB_CHECK(farsee_wakeup_consume(w));
     farsee_wakeup_destroy(&w);
-    return g_alarm_runs == 0x5a ? 0 : 3;
 }
 
-RFB_TEST(wakeup_signal, wakeup_signal__eintr_interrupted_write__still_lands_byte)
+RFB_TEST(wakeup_signal, wakeup_signal__eintr_then_eio__reports_failure)
 {
-    pid_t pid = fork();
-    RFB_CHECK(pid >= 0);
-    if (pid == 0) {
-        _exit(wakeup_eintr_child());
-    }
-    int status = 0;
-    RFB_CHECK(waitpid(pid, &status, 0) == pid);
-    RFB_CHECK_MSG(WIFEXITED(status), "wakeup EINTR child died abnormally");
-    int code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-    char msg[64];
-    (void)snprintf(msg, sizeof msg,
-                   "wakeup EINTR child failed (exit code %d)", code);
-    RFB_CHECK_MSG(code == 0, msg);
+    farsee_wakeup *w = farsee_wakeup_create();
+    RFB_CHECK(w != NULL);
+    wakeup_write_script script = {
+        .calls = 0,
+        .error_after_eintr = EIO,
+    };
+
+    RFB_CHECK(!farsee_wakeup_signal_with_writer(
+        w, wakeup_eintr_writer, &script));
+    RFB_CHECK_EQ_INT(script.calls, 2);
+    RFB_CHECK(!farsee_wakeup_consume(w));
+    farsee_wakeup_destroy(&w);
 }
 
 // --- full pipe: EAGAIN means already pending ----------------------------------
