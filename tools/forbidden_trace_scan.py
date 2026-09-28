@@ -767,10 +767,95 @@ def _elf_executable_ranges(data: bytes) -> Optional[list[tuple[int, int]]]:
     return ranges
 
 
+def _elf_opaque_metadata_ranges(
+        data: bytes) -> Optional[list[tuple[int, int]]]:
+    """Locate validated fixed-width ELF records, excluding string tables."""
+    if data[:4] != b"\x7fELF":
+        return None
+    if len(data) < 16 or data[4] not in {1, 2} or data[5] not in {1, 2}:
+        raise ValueError("unsupported ELF release binary")
+    is_64 = data[4] == 2
+    endian = "<" if data[5] == 1 else ">"
+    header_format = endian + (
+        "16sHHIQQQIHHHHHH" if is_64 else "16sHHIIIIIHHHHHH"
+    )
+    header = _unpack_binary(header_format, data, 0, "ELF header")
+    section_offset = int(header[6])
+    section_entry_size = int(header[11])
+    section_count = int(header[12])
+    if section_offset == 0:
+        return []
+
+    section_format = endian + (
+        "IIQQQQIIQQ" if is_64 else "IIIIIIIIII"
+    )
+    section_min_size = struct.calcsize(section_format)
+    if section_entry_size < section_min_size:
+        raise ValueError("short ELF section-header entry")
+    first_section = _unpack_binary(
+        section_format, data, section_offset, "ELF section header"
+    )
+    if section_count == 0:
+        section_count = int(first_section[5])
+    _require_file_range(
+        data, section_offset, section_count * section_entry_size,
+        "ELF section-header table",
+    )
+    sections = [
+        _unpack_binary(
+            section_format, data,
+            section_offset + index * section_entry_size,
+            "ELF section header",
+        )
+        for index in range(section_count)
+    ]
+
+    # These sections contain only fixed-width linker records. Names and other
+    # human-readable values referenced by them live in SHT_STRTAB sections,
+    # which deliberately remain searchable.
+    entry_sizes = {
+        2: 24 if is_64 else 16,       # SHT_SYMTAB
+        4: 24 if is_64 else 12,       # SHT_RELA
+        9: 16 if is_64 else 8,        # SHT_REL
+        11: 24 if is_64 else 16,      # SHT_DYNSYM
+        19: 8 if is_64 else 4,        # SHT_RELR
+        0x6fffffff: 2,                # SHT_GNU_versym
+    }
+    ranges: list[tuple[int, int]] = []
+    for section in sections:
+        section_type = int(section[1])
+        expected_entry_size = entry_sizes.get(section_type)
+        if expected_entry_size is None:
+            continue
+        file_offset = int(section[4])
+        file_size = int(section[5])
+        link = int(section[6])
+        entry_size = int(section[9])
+        if entry_size != expected_entry_size:
+            raise ValueError("invalid ELF metadata entry size")
+        if file_size % entry_size != 0:
+            raise ValueError("partial ELF metadata record")
+        _require_file_range(data, file_offset, file_size,
+                            "ELF metadata section")
+        if section_type in {2, 11}:
+            if link >= section_count or int(sections[link][1]) != 3:
+                raise ValueError("ELF symbol table has invalid string table")
+        elif section_type in {4, 9}:
+            if link >= section_count or int(sections[link][1]) not in {2, 11}:
+                raise ValueError("ELF relocation section has invalid symbols")
+        elif section_type == 0x6fffffff:
+            if link >= section_count or int(sections[link][1]) != 11:
+                raise ValueError("ELF version section has invalid symbols")
+        if file_size > 0:
+            ranges.append((file_offset, file_offset + file_size))
+    return ranges
+
+
 def scan_release_binary_blob(data: bytes, label: str,
                              rules: Sequence[Rule]) -> list[Finding]:
     """Scan release data without treating short opaque bytes as labels."""
     signature_ranges: list[tuple[int, int]] = []
+    opaque_ranges: list[tuple[int, int]] = []
     ranges = _macho_non_string_section_ranges(data)
     if ranges is not None:
         symbol_ranges = _macho_symbol_record_ranges(data)
@@ -780,10 +865,11 @@ def scan_release_binary_blob(data: bytes, label: str,
         ranges.extend(symbol_ranges)
     if ranges is None:
         ranges = _elf_executable_ranges(data)
+        opaque_ranges = _elf_opaque_metadata_ranges(data) or []
     if ranges is None:
         return scan_blob(data, label, rules, binary=True)
     searchable = bytearray(data)
-    for start, end in signature_ranges:
+    for start, end in signature_ranges + opaque_ranges:
         searchable[start:end] = b"\0" * (end - start)
     # Machine instructions, pointers, and linker records can form isolated
     # short labels by chance. The worktree scan still checks their source, and

@@ -224,6 +224,47 @@ def _synthetic_elf64(text: bytes, strings: bytes) -> bytes:
             string_section)
 
 
+def _synthetic_elf64_with_versions(strings: bytes, versions: bytes) -> bytes:
+    header_size = 64
+    program_size = 56
+    text = b"safe\0"
+    text_offset = header_size + program_size
+    string_offset = text_offset + len(text)
+    symbol_offset = string_offset + len(strings)
+    symbols = b"\0" * 24
+    version_offset = symbol_offset + len(symbols)
+    section_offset = version_offset + len(versions)
+    identity = b"\x7fELF\x02\x01\x01" + b"\0" * 9
+    header = struct.pack(
+        "<16sHHIQQQIHHHHHH", identity, 2, 62, 1, 0, header_size,
+        section_offset, 0, header_size, program_size, 1, 64, 5, 0,
+    )
+    program = struct.pack(
+        "<IIQQQQQQ", 1, 0x5, text_offset, 0x1000, 0x1000,
+        len(text), len(text), 0x1000,
+    )
+    null_section = b"\0" * 64
+    text_section = struct.pack(
+        "<IIQQQQIIQQ", 0, 1, 0x6, 0x1000, text_offset, len(text),
+        0, 0, 4, 0,
+    )
+    string_section = struct.pack(
+        "<IIQQQQIIQQ", 0, 3, 0x2, 0x2000, string_offset,
+        len(strings), 0, 0, 1, 0,
+    )
+    symbol_section = struct.pack(
+        "<IIQQQQIIQQ", 0, 11, 0x2, 0x3000, symbol_offset,
+        len(symbols), 2, 0, 8, 24,
+    )
+    version_section = struct.pack(
+        "<IIQQQQIIQQ", 0, 0x6fffffff, 0x2, 0x4000, version_offset,
+        len(versions), 3, 0, 2, 2,
+    )
+    return (header + program + text + strings + symbols + versions
+            + null_section + text_section + string_section + symbol_section
+            + version_section)
+
+
 def _synthetic_stripped_elf64(text: bytes) -> bytes:
     header_size = 64
     program_size = 56
@@ -589,6 +630,39 @@ class VocabularyGateTests(unittest.TestCase):
                     )
                     self.assertEqual(len(findings), 1)
                     self.assertIn(":byte:", findings[0].location)
+
+    def test_release_binary_scan_distinguishes_elf_metadata_from_strings(
+            self) -> None:
+        marker = bytes.fromhex("4d37")
+        rule = SCAN.Rule(
+            "synthetic_elf_metadata", "synthetic_fixture", None,
+            (SCAN.TokenHash(
+                1, hashlib.sha256(marker.lower()).digest()
+            ),),
+        )
+        binary = _synthetic_elf64_with_versions(b"public\0", marker)
+        self.assertEqual(
+            SCAN.scan_release_binary_blob(binary, "candidate", [rule]), []
+        )
+
+        binary = _synthetic_elf64_with_versions(
+            b"\0" + marker + b"\0", b"\0\0"
+        )
+        findings = SCAN.scan_release_binary_blob(binary, "candidate", [rule])
+        self.assertEqual(len(findings), 1)
+        self.assertIn(":byte:", findings[0].location)
+
+    def test_release_binary_scan_rejects_bad_elf_metadata_link(self) -> None:
+        binary = bytearray(_synthetic_elf64_with_versions(
+            b"public\0", b"\0\0"
+        ))
+        section_offset = struct.unpack_from("<Q", binary, 40)[0]
+        version_link = section_offset + 4 * 64 + 40
+        struct.pack_into("<I", binary, version_link, 99)
+        with self.assertRaises(ValueError):
+            SCAN.scan_release_binary_blob(
+                bytes(binary), "candidate", [_synthetic_rule()]
+            )
 
     def test_release_binary_scan_distinguishes_macho_symbols_from_strings(
             self) -> None:
