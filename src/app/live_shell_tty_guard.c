@@ -54,6 +54,13 @@ static void live_shell_register_atexit_once(void)
 
 static void live_shell_on_fatal_signal(int sig)
 {
+    struct sigaction default_action = {0};
+    default_action.sa_handler = SIG_DFL;
+    sigemptyset(&default_action.sa_mask);
+    default_action.sa_flags = 0;
+    const bool reset_to_default =
+        sigaction(sig, &default_action, NULL) == 0;
+
     const sig_atomic_t fd = g_fatal_tty_fd;
     const sig_atomic_t length = g_fatal_seq_len;
     if (g_fatal_armed && length > 0 && fd >= 0) {
@@ -61,7 +68,14 @@ static void live_shell_on_fatal_signal(int sig)
             write((int)fd, g_fatal_seq, (size_t)length);
         (void)written;
     }
-    (void)kill(getpid(), sig);
+    if (reset_to_default) {
+        sigset_t fatal_signal;
+        sigemptyset(&fatal_signal);
+        (void)(sigaddset)(&fatal_signal, sig);
+        if (sigprocmask(SIG_UNBLOCK, &fatal_signal, NULL) == 0) {
+            (void)raise(sig);
+        }
+    }
     _exit(128 + sig);
 }
 
@@ -86,7 +100,11 @@ static bool live_shell_arm_fatal_restorers(void)
     // Linux defines SA_RESETHAND with the unsigned high bit even though
     // sigaction.sa_flags is an int. The explicit conversion preserves the
     // POSIX flag bits without triggering -Wsign-conversion.
-    sa.sa_flags = (int)(SA_RESETHAND | SA_NODEFER);
+    // Keep the current fatal signal blocked while its one-shot handler runs.
+    // The handler restores the default disposition before unblocking and
+    // re-raising it. SA_NODEFER would permit recursive handler entry and can
+    // fill the restoration pipe indefinitely on Linux.
+    sa.sa_flags = (int)SA_RESETHAND;
     for (size_t i = 0u; i < 4u; i++) {
         if (sigaction(g_fatal_signals[i], NULL, &g_fatal_previous[i]) != 0) {
             return false;
