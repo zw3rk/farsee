@@ -79,11 +79,11 @@ class MacosAcceptanceTests(unittest.TestCase):
     ) -> Path:
         fake = temp / name
         if wire_record_marker:
-            marker = 'echo "farsee: Apple AES-CBC records active" >&2\n'
+            marker = 'echo "farsee: Apple AES-CBC records active" >&2'
         elif record_marker:
             marker = (
                 'echo "farsee: Apple AES-CBC record layer active '
-                '(0x044f rekey; AES-CBC records on wire)." >&2\n'
+                '(0x044f rekey; AES-CBC records on wire)." >&2'
             )
         else:
             marker = ""
@@ -131,7 +131,8 @@ class MacosAcceptanceTests(unittest.TestCase):
                 IFS= read -r -u "$fd" password || true
                 [ "$password" = test-password ] || exit 2
                 [ "$saw_user$saw_type36$saw_records$saw_null$saw_view_only$saw_share" = 111111 ] || exit 2
-                {marker}sleep 10
+                {marker}
+                sleep 10
                 """
             ),
             encoding="utf-8",
