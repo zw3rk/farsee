@@ -23,9 +23,11 @@
 #if defined(__APPLE__)
 #  define PROVIDER_NAME "CommonCrypto"
 #  define PROVIDER_FN rfb_des_commoncrypto
+#  define INACTIVE_PROVIDER_FN rfb_des_openssl
 #else
 #  define PROVIDER_NAME "OpenSSL"
 #  define PROVIDER_FN rfb_des_openssl
+#  define INACTIVE_PROVIDER_FN rfb_des_commoncrypto
 #endif
 
 // Schedule "password" and verify the per-byte bit-reversal.
@@ -78,4 +80,24 @@ RFB_TEST(crypto_kat, kat__des_different_plaintexts__different_ciphertexts) {
         if (out_a[i] != out_b[i]) { any_differ = true; break; }
     }
     RFB_CHECK(any_differ);
+}
+
+RFB_TEST(crypto_kat, active_provider__null_arguments_fail_closed)
+{
+    static const uint8_t key[8] = { 0 };
+    static const uint8_t in[8] = { 0 };
+    uint8_t out[8] = { 0 };
+
+    RFB_CHECK(!PROVIDER_FN(NULL, in, out));
+    RFB_CHECK(!PROVIDER_FN(key, NULL, out));
+    RFB_CHECK(!PROVIDER_FN(key, in, NULL));
+}
+
+RFB_TEST(crypto_kat, inactive_provider__fails_closed)
+{
+    static const uint8_t key[8] = { 0 };
+    static const uint8_t in[8] = { 0 };
+    uint8_t out[8] = { 0 };
+
+    RFB_CHECK(!INACTIVE_PROVIDER_FN(key, in, out));
 }
