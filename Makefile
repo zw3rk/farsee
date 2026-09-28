@@ -273,6 +273,18 @@ override SA_CFLAGS := $(STD_FLAGS) -include $(GEN_VERSION_H) \
 LDFLAGS := $(BUILD_LDFLAGS)
 LDLIBS  := $(CRYPTO_LIBS) $(ZLIB_LIBS) $(OPENSSL_LIBS) $(RDP_LIBS) -lpthread
 
+# `nix develop` adds its writable `$out/lib` directory to NIX_LDFLAGS. On
+# Linux that becomes an absolute RUNPATH into the caller's workspace. Release
+# binaries need the store dependency paths, but never this transient path.
+RELEASE_NIX_LDFLAGS := $(NIX_LDFLAGS)
+RELEASE_LINK_ENV :=
+ifeq ($(BUILD),release)
+  ifneq ($(strip $(out)),)
+    RELEASE_NIX_LDFLAGS := $(strip $(subst -rpath $(out)/lib ,,$(NIX_LDFLAGS) ))
+    RELEASE_LINK_ENV := env NIX_LDFLAGS='$(RELEASE_NIX_LDFLAGS)'
+  endif
+endif
+
 # ---------------------------------------------------------------------------
 # Discover sources. (G0 has only the test framework + smoke test; more
 # directories are added by later gates.)
@@ -804,11 +816,11 @@ $(GEN_ARTIFACTS): $(REGISTRY_STAMP_PREREQ) $(TEST_FRAMEWORK_SRCS) $(wildcard $(T
 
 $(APP_BIN): $(PRODUCT_LIB_OBJS) $(APP_MAIN_SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 	@mkdir -p $(@D)
-	$(QUIET_LINK)$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+	$(QUIET_LINK)$(RELEASE_LINK_ENV) $(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 $(TEST_RUNNER): $(TEST_LIB_OBJS) $(TEST_RUNNER_FRAMEWORK_OBJ) $(TEST_HELPERS_OBJ) $(TEST_FAKES_OBJ) $(TEST_CASE_OBJS) $(GEN_REGISTRY_OBJ)
 	@mkdir -p $(@D)
-	$(QUIET_LINK)$(CC) $(LDFLAGS) -o $@ $(TEST_LIB_OBJS) $(TEST_RUNNER_FRAMEWORK_OBJ) $(TEST_HELPERS_OBJ) $(TEST_FAKES_OBJ) $(TEST_CASE_OBJS) $(GEN_REGISTRY_OBJ) $(LDLIBS)
+	$(QUIET_LINK)$(RELEASE_LINK_ENV) $(CC) $(LDFLAGS) -o $@ $(TEST_LIB_OBJS) $(TEST_RUNNER_FRAMEWORK_OBJ) $(TEST_HELPERS_OBJ) $(TEST_FAKES_OBJ) $(TEST_CASE_OBJS) $(GEN_REGISTRY_OBJ) $(LDLIBS)
 
 $(GEN_REGISTRY_OBJ): $(GEN_REGISTRY) | gen-version-header
 	@mkdir -p $(@D)

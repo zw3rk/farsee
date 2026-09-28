@@ -27,6 +27,29 @@ def write(path: Path, text: str) -> None:
 
 
 class ReleasePolicyTests(unittest.TestCase):
+    def test_release_link_drops_devshell_output_runpath(self) -> None:
+        workspace = "/" + "home/runner/work/farsee/farsee"
+        output = subprocess.run(
+            [
+                "make", "-s", "--no-print-directory", "BUILD=release",
+                f"out={workspace}/outputs/out",
+                (
+                    "NIX_LDFLAGS=-rpath "
+                    f"{workspace}/outputs/out/lib -L/nix/store/example/lib"
+                ),
+                "--eval",
+                "print-release-ldflags:;@printf '%s\\n' "
+                "\"$(RELEASE_NIX_LDFLAGS)\"",
+                "print-release-ldflags",
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(output.returncode, 0, output.stderr)
+        self.assertEqual(output.stdout.strip(), "-L/nix/store/example/lib")
+
     def test_default_tests_include_cli_dispatch_smoke(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
         test_target = re.search(r"^test:([^\n]*)", makefile, re.MULTILINE)
