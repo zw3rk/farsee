@@ -257,7 +257,7 @@ SCENARIOS: list[dict[str, Any]] = [
         "ack_expected": False,
     },
     {
-        "name": "capture-mutation-control-eof",
+        "name": "capture-mutation-control-zero-datagram",
         "mutation": True,
         "timeout_ms": 500,
         "error": 5,
@@ -551,7 +551,11 @@ def run_scenario(driver: str, server_py: str,
             if ready_required:
                 nonce, transition = receive_ready(orchestrator_control)
                 control_result["ready_decoded"] = True
-                if spec["name"] == "capture-mutation-control-eof":
+                if spec["name"] == "capture-mutation-control-zero-datagram":
+                    # SOCK_DGRAM peer close is not observable on every POSIX
+                    # platform. An empty datagram portably exercises the
+                    # control channel's zero-length/closed-input path.
+                    orchestrator_control.send(b"")
                     orchestrator_control.close()
                     orchestrator_control = None
                 elif spec.get("ack_expected", True):

@@ -324,7 +324,7 @@ def serve_capture(conn: socket.socket, scenario: str) -> dict:
         "capture-mutation-wrong-transition",
         "capture-mutation-wrong-version",
         "capture-mutation-no-ack-timeout",
-        "capture-mutation-control-eof",
+        "capture-mutation-control-zero-datagram",
         "capture-mutation-ready-backpressure",
     }:
         extra = capture_collect_extra(conn)
@@ -375,9 +375,10 @@ def serve_capture(conn: socket.socket, scenario: str) -> dict:
 
     response = bytes.fromhex("00000001") + capture_rect(x, 0, 8, 8, body)
     if scenario == "capture-post-target-unsolicited":
-        conn.sendall(response)
-        time.sleep(0.01)
-        conn.sendall(initial)
+        # Keep both messages in one write. The protocol contract permits them
+        # to arrive together, and the test must not depend on process
+        # scheduling keeping a nominal 10 ms delay below the quiet window.
+        conn.sendall(response + initial)
         return {"result": "ok", "initial_quarantined": True,
                 "target_exact": True,
                 "extra_client_bytes": capture_collect_extra(conn)}
@@ -469,8 +470,8 @@ def serve_capture_mutation_no_ack_timeout(conn: socket.socket) -> dict:
     return serve_capture(conn, "capture-mutation-no-ack-timeout")
 
 
-def serve_capture_mutation_control_eof(conn: socket.socket) -> dict:
-    return serve_capture(conn, "capture-mutation-control-eof")
+def serve_capture_mutation_control_zero_datagram(conn: socket.socket) -> dict:
+    return serve_capture(conn, "capture-mutation-control-zero-datagram")
 
 
 def serve_capture_mutation_ready_backpressure(conn: socket.socket) -> dict:
@@ -510,7 +511,8 @@ SCENARIOS = {
     "capture-mutation-no-ack-timeout": (
         serve_capture_mutation_no_ack_timeout
     ),
-    "capture-mutation-control-eof": serve_capture_mutation_control_eof,
+    "capture-mutation-control-zero-datagram":
+        serve_capture_mutation_control_zero_datagram,
     "capture-mutation-ready-backpressure": (
         serve_capture_mutation_ready_backpressure
     ),
